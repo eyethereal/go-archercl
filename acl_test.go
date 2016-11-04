@@ -27,13 +27,13 @@ b = 2
 	}
 
 	if node.Child("a").AsInt() != 1 {
-		t.Fatal("a didn't parse properly")
+		t.Fatalf("a didn't parse properly")
 	}
 	if node.Child("b").AsInt() != 2 {
-		t.Fatal("b didn't parse properly")
+		t.Fatalf("b didn't parse properly")
 	}
 	if node.Child("c").AsInt() != 3 {
-		t.Fatal("v didn't parse properly")
+		t.Fatalf("v didn't parse properly")
 	}
 }
 
@@ -139,7 +139,7 @@ func Test_ValuesObject(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	alog.Info("Node is %s", node.String())
+	alog.Infof("Node is %s", node.String())
 
 	obj := node.Child("sub")
 	if obj == nil {

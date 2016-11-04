@@ -24,22 +24,22 @@ func outputDelayedLog(lgr *logging.Logger) {
 	for _, d := range delayed {
 		switch d.level {
 		case logging.CRITICAL:
-			lgr.Critical("%s", d.message)
+			lgr.Critical(d.message)
 
 		case logging.ERROR:
-			lgr.Error("%s", d.message)
+			lgr.Error(d.message)
 
 		case logging.WARNING:
-			lgr.Warning("%s", d.message)
+			lgr.Warning(d.message)
 
 		case logging.NOTICE:
-			lgr.Notice("%s", d.message)
+			lgr.Notice(d.message)
 
 		case logging.INFO:
-			lgr.Info("%s", d.message)
+			lgr.Info(d.message)
 
 		default:
-			lgr.Debug("%s", d.message)
+			lgr.Debug(d.message)
 
 		}
 	}

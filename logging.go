@@ -29,13 +29,17 @@
 	Using the setup above, you will have a log variable available that has Printf style methods on
 	it as per:
 
-		log.Critical(fmt, ...)
-		log.Error(fmt, ...)
-		log.Warning(fmt, ...)
-		log.Notice(fmt, ...)
-		log.Info(fmt, ...)
-		log.Debug(fmt, ...)
+		log.Criticalf(fmt, ...)
+		log.Errorf(fmt, ...)
+		log.Warningf(fmt, ...)
+		log.Noticef(fmt, ...)
+		log.Infof(fmt, ...)
+		log.Debugf(fmt, ...)
 
+	NOTE: There was a breaking change in early 2016 which requires the trailing f on the level names
+	if you want to use formatting strings. This matches the fmt.Printf(...) syntax. There are also
+	non-f versions of the level methods which will immediately log the first value as a message. This
+	requires going through our whole codebase and some things might have gotten missed. Yay for progress.
 
 	Logging Configuration
 
