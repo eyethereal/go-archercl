@@ -37,22 +37,26 @@ var BuildInfo string = ""
 
 // LoadACLConfig is the standard method of loading and parsing a
 // configuration.
-func LoadACLConfig() *AclNode {
+func LoadACLConfig(name string, prefix string) *AclNode {
 
 	cfg := NewAclNode()
+
+	if name == "" {
+		name = "archer"
+	}
 
 	// Parse the command line arguments
 	ignoreDefaults, filenames, toParse := ParseCmdLine()
 
 	if !ignoreDefaults {
 		// Start with the default files
-		_ = cfg.ParseFile("/etc/archer.acl")
+		_ = cfg.ParseFile("/etc/" + name + ".acl")
 
 		usr, _ := user.Current()
 		dir := usr.HomeDir
-		_ = cfg.ParseFile(dir + "/.archer.acl")
+		_ = cfg.ParseFile(dir + "/." + name + ".acl")
 
-		cfg.ParseFile("./archer.acl")
+		cfg.ParseFile("./" + name + ".acl")
 	}
 
 	for _, fname := range filenames {
@@ -60,9 +64,14 @@ func LoadACLConfig() *AclNode {
 	}
 
 	// Environment variables
+	if prefix == "" {
+		prefix = name
+	}
+	prefix = strings.ToUpper(name)
+
 	env := make([]string, 0)
 	for _, v := range os.Environ() {
-		if strings.HasPrefix(v, "ARCHER_") {
+		if strings.HasPrefix(v, prefix+"_") {
 			env = append(env, v[7:])
 		}
 	}

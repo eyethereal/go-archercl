@@ -269,8 +269,10 @@ func ColoredLoggingToConsole() {
 	cfg := StringToACL(`
 		logging backends color_console {
 			type: stdout
-			color: true
+			color: true			
 		}
+
+		logging level: "debug"
 	`)
 
 	SetLoggingConfig(cfg)
