@@ -263,6 +263,31 @@ func (node *AclNode) ChildAsBool(names ...string) bool {
 	return cNode.AsBool()
 }
 
+/////
+func (node *AclNode) ChildAsIntList(names ...string) []int {
+	cNode := node.Child(names...)
+	if cNode == nil {
+		return []int{}
+	}
+	out := make([]int, len(cNode.Values))
+	for ix, v := range cNode.Values {
+		out[ix] = valAsInt(v)
+	}
+	return out
+}
+
+func (node *AclNode) ChildAsFloatList(names ...string) []float64 {
+	cNode := node.Child(names...)
+	if cNode == nil {
+		return []float64{}
+	}
+	out := make([]float64, len(cNode.Values))
+	for ix, v := range cNode.Values {
+		out[ix] = valAsFloat(v)
+	}
+	return out
+}
+
 func (node *AclNode) ChildAsStringList(names ...string) []string {
 	cNode := node.Child(names...)
 	if cNode == nil {
@@ -276,6 +301,19 @@ func (node *AclNode) ChildAsStringList(names ...string) []string {
 	return out
 }
 
+func (node *AclNode) ChildAsBoolList(names ...string) []bool {
+	cNode := node.Child(names...)
+	if cNode == nil {
+		return []bool{}
+	}
+	out := make([]bool, len(cNode.Values))
+	for ix, v := range cNode.Values {
+		out[ix] = valAsBool(v)
+	}
+	return out
+}
+
+/////
 func (node *AclNode) ChildAsBytes(names ...string) []byte {
 	str := node.Child(names...).AsStringN(0)
 	if len(str) == 0 {
@@ -289,6 +327,8 @@ func (node *AclNode) ChildAsBytes(names ...string) []byte {
 
 	return data
 }
+
+/////
 
 func (node *AclNode) DefChildAsInt(def int, names ...string) int {
 	cNode := node.Child(names...)
@@ -350,21 +390,23 @@ func (node *AclNode) IsArray() bool {
 
 // By default return the LAST value as opposed to the first. We used to return the
 // first but it seems more natural to use an "overwrite" behavior while preserving
-// the option for people to get the first if they really want it
+// the option for people to get the first if they really want it.
+
+// We have to protect the "last" section from nils
 func (node *AclNode) AsInt() int {
-	return node.AsIntN(len(node.Values) - 1)
+	return node.AsIntN(-1)
 }
 
 func (node *AclNode) AsFloat() float64 {
-	return node.AsFloatN(len(node.Values) - 1)
+	return node.AsFloatN(-1)
 }
 
 func (node *AclNode) AsString() string {
-	return node.AsStringN(len(node.Values) - 1)
+	return node.AsStringN(-1)
 }
 
 func (node *AclNode) AsBool() bool {
-	return node.AsBoolN(len(node.Values) - 1)
+	return node.AsBoolN(-1)
 }
 
 // Get the first vaues
@@ -385,20 +427,31 @@ func (node *AclNode) FirstAsBool() bool {
 }
 
 // Get any on the values
-func (node *AclNode) AsIntN(ix int) int {
+func (node *AclNode) findValIx(ix int) int {
 	if node == nil || node.Values == nil || len(node.Values) < 1 {
-		return 0
+		// fmt.Printf("---- first\n")
+		return -1
 	}
 
-	if ix >= len(node.Values) {
-		return 0
+	if ix < 0 {
+		// Reverse it
+		ix = len(node.Values) + ix
 	}
 
-	r, ok := node.Values[ix].(int64)
+	if ix < 0 || ix >= len(node.Values) {
+		// fmt.Printf("---- second ix=%v\n", ix)
+		return -1
+	}
+
+	return ix
+}
+
+func valAsInt(v interface{}) int {
+	r, ok := v.(int64)
 	if !ok {
-		r, ok := node.Values[ix].(int32)
+		r, ok := v.(int32)
 		if !ok {
-			r, ok := node.Values[ix].(int)
+			r, ok := v.(int)
 			if !ok {
 				return 0
 			}
@@ -409,38 +462,41 @@ func (node *AclNode) AsIntN(ix int) int {
 	return int(r)
 }
 
-func (node *AclNode) AsFloatN(ix int) float64 {
-	if node == nil || node.Values == nil || len(node.Values) < 1 {
+func (node *AclNode) AsIntN(ix int) int {
+	ix = node.findValIx(ix)
+	if ix < 0 {
 		return 0
 	}
 
-	if ix >= len(node.Values) {
-		return 0.0
-	}
+	return valAsInt(node.Values[ix])
+}
 
-	r, ok := node.Values[ix].(float64)
+func valAsFloat(v interface{}) float64 {
+	r, ok := v.(float64)
 	if !ok {
-		r, ok := node.Values[ix].(float32)
+		r, ok := v.(float32)
 		if !ok {
 			return 0.0
 		}
 		return float64(r)
 	}
 	return r
+
 }
 
-func (node *AclNode) AsStringN(ix int) string {
-	if node == nil || node.Values == nil || len(node.Values) < 1 {
-		return ""
+func (node *AclNode) AsFloatN(ix int) float64 {
+	ix = node.findValIx(ix)
+	if ix < 0 {
+		return 0.0
 	}
 
-	if ix >= len(node.Values) {
-		return ""
-	}
+	return valAsFloat(node.Values[ix])
+}
 
-	r, ok := node.Values[ix].(string)
+func valAsString(v interface{}) string {
+	r, ok := v.(string)
 	if !ok {
-		r, ok := node.Values[ix].(fmt.Stringer)
+		r, ok := v.(fmt.Stringer)
 		if !ok {
 			return ""
 		}
@@ -449,20 +505,32 @@ func (node *AclNode) AsStringN(ix int) string {
 	return r
 }
 
-func (node *AclNode) AsBoolN(ix int) bool {
-	if node == nil || node.Values == nil || len(node.Values) < 1 {
-		return false
+func (node *AclNode) AsStringN(ix int) string {
+	ix = node.findValIx(ix)
+	if ix < 0 {
+		// fmt.Printf("-- Default string for ix=%v node=%v\n", ix, node)
+		// if node != nil {
+		// 	if node.Values != nil {
+		// 		fmt.Printf("-- len=%v\n", len(node.Values))
+		// 	} else {
+		// 		fmt.Printf("-- node.Values is nil\n")
+		// 	}
+		// } else {
+		// 	fmt.Printf("-- nod is nil\n")
+		// }
+		return ""
 	}
+	// fmt.Printf("AsStringN(%v) v=%v\n", ix, node.Values[ix])
 
-	if ix >= len(node.Values) {
-		return false
-	}
+	return valAsString(node.Values[ix])
+}
 
-	r, ok := node.Values[ix].(bool)
+func valAsBool(v interface{}) bool {
+	r, ok := v.(bool)
 	if !ok {
-		r, ok := node.Values[ix].(string)
+		r, ok := v.(string)
 		if !ok {
-			r, ok := node.Values[ix].(fmt.Stringer)
+			r, ok := v.(fmt.Stringer)
 			if !ok {
 				return false
 			}
@@ -479,6 +547,15 @@ func (node *AclNode) AsBoolN(ix int) bool {
 		return b
 	}
 	return r
+}
+
+func (node *AclNode) AsBoolN(ix int) bool {
+	ix = node.findValIx(ix)
+	if ix < 0 {
+		return false
+	}
+
+	return valAsBool(node.Values[ix])
 }
 
 //////////////////////////////////////////////////////
@@ -719,7 +796,7 @@ func (l *ParseLocation) Error() string {
 
 // StringToACL is a function for immediately parsing simple configs into
 // an AclNode tree. It is useful for test case writing, but probably should not
-// be used for real code
+// be used for real code because it hides errors.
 func StringToACL(str string) *AclNode {
 	node := NewAclNode()
 	_ = node.ParseString(str, nil)

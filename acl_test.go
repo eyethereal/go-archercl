@@ -139,7 +139,7 @@ func Test_ValuesObject(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	alog.Infof("Node is %s", node.String())
+	// alog.Infof("Node is %s", node.String())
 
 	obj := node.Child("sub")
 	if obj == nil {
@@ -169,14 +169,18 @@ func Test_StringOne(t *testing.T) {
 	n.Values = append(n.Values, true)
 	n.Values = append(n.Values, "abc")
 	root.Children["one"] = n
+	root.OrderedChildNames = append(root.OrderedChildNames, "one")
 
 	n = NewAclNode()
 	n.Values = append(n.Values, "world")
 	root.Children["hello"] = n
+	root.OrderedChildNames = append(root.OrderedChildNames, "hello")
 
 	str := root.String()
 
-	should := "{\n\t\"hello\": \"world\",\n\t\"one\": [\n\t\t1,\n\t\t2.3,\n\t\ttrue,\n\t\t\"abc\",\n\t],\n}"
+	// fmt.Printf("%s\n", strconv.Quote(str))
+
+	should := "{ \"one\": [ 1, 2.3, true, \"abc\" ], \"hello\": \"world\" }"
 	if str != should {
 		t.Fatal("Expected: \n" + should + "But got\n" + str)
 	}

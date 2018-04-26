@@ -318,7 +318,8 @@ func SetLoggingConfig(acl *AclNode) {
 				Name: name,
 				Node: beNode,
 			}
-			switch beNode.ChildAsString("type") {
+			kind := beNode.ChildAsString("type")
+			switch kind {
 			case "memory":
 				makeMemoryBackend(holder)
 
@@ -343,7 +344,7 @@ func SetLoggingConfig(acl *AclNode) {
 			}
 
 			if holder.Backend == nil {
-				fmt.Printf("Ignoring backend named '%s'\n", holder.Name)
+				fmt.Printf("Ignoring backend named '%s' type '%v' because we didn't understand the type\n%v\n", holder.Name, kind, beNode.String())
 				continue
 			}
 
