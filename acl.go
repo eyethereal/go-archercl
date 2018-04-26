@@ -182,12 +182,22 @@ type AclNode struct {
 	Values []interface{}
 
 	Children map[string]*AclNode
+
+	// These fields are related to the way things are parsed so that we can
+	// reproduce the order they were written in
+	OrderedChildNames []string
+	IsMultiline       bool
+	UsesEquals        bool
 }
 
 func NewAclNode() (node *AclNode) {
 	return &AclNode{
 		Values:   make([]interface{}, 0),
 		Children: make(map[string]*AclNode),
+
+		OrderedChildNames: make([]string, 0),
+		IsMultiline:       false,
+		UsesEquals:        false,
 	}
 }
 
@@ -497,6 +507,18 @@ func (node *AclNode) valueTo(writer *bufio.Writer, indentStr string, level int, 
 	}
 }
 
+func (node *AclNode) maybeWriteNewline(writer *bufio.Writer, indentStr string, level int) bool {
+	if node.IsMultiline {
+		writer.WriteString("\n")
+		for l := 0; l < level; l++ {
+			writer.WriteString(indentStr)
+		}
+		return true
+	}
+
+	return false
+}
+
 // StringTo recursively prints the value of this node and any children that
 // it has. When child nodes only have a single child it will collapse
 // those nodes. (maybe??)
@@ -511,22 +533,31 @@ func (node *AclNode) StringTo(writer *bufio.Writer, indentStr string, level int,
 			if withColor {
 				writer.WriteString(ansi.Cyan)
 			}
-			writer.WriteString("[\n")
-			for _, value := range node.Values {
-				if withColor {
-					writer.WriteString(ansi.Black)
-				}
-				for l := 0; l <= level; l++ {
-					writer.WriteString(indentStr)
-				}
+			writer.WriteString("[")
+			if !node.maybeWriteNewline(writer, indentStr, level+1) {
+				writer.WriteString(" ")
+			}
+
+			lastIx := len(node.Values) - 1
+			for ix, value := range node.Values {
+				isLast := ix == lastIx
+
 				node.valueTo(writer, indentStr, level+1, withColor, value)
 				if withColor {
 					writer.WriteString(ansi.Cyan)
 				}
-				writer.WriteString(",\n")
+				iLevel := level + 1
+				if isLast {
+					iLevel--
+				} else {
+					writer.WriteString(",")
+				}
+				if !node.maybeWriteNewline(writer, indentStr, iLevel) {
+					writer.WriteString(" ")
+				}
 			}
-			for l := 0; l < level; l++ {
-				writer.WriteString(indentStr)
+			if withColor {
+				writer.WriteString(ansi.Cyan)
 			}
 			writer.WriteString("]")
 		}
@@ -535,7 +566,10 @@ func (node *AclNode) StringTo(writer *bufio.Writer, indentStr string, level int,
 		if withColor {
 			writer.WriteString(ansi.Magenta)
 		}
-		writer.WriteString("{\n")
+		writer.WriteString("{")
+		if !node.maybeWriteNewline(writer, indentStr, level+1) {
+			writer.WriteString(" ")
+		}
 
 		// We go to the extra trouble to sort the keys here so that
 		// the output is predictable, which aids in testing.
@@ -545,14 +579,14 @@ func (node *AclNode) StringTo(writer *bufio.Writer, indentStr string, level int,
 		}
 		sort.Strings(keys)
 
-		for _, name := range keys {
+		last := len(keys) - 1
+		for ix, name := range keys {
+			isLast := ix == last
+
 			if withColor {
 				writer.WriteString(ansi.Black)
 			}
 			obj := node.Children[name]
-			for l := 0; l <= level; l++ {
-				writer.WriteString(indentStr)
-			}
 
 			if withColor {
 				writer.WriteString(ansi.Blue)
@@ -560,9 +594,13 @@ func (node *AclNode) StringTo(writer *bufio.Writer, indentStr string, level int,
 			writer.WriteString(strconv.Quote(name))
 
 			if withColor {
-				writer.WriteString(ansi.Cyan)
+				writer.WriteString(ansi.Magenta)
 			}
-			writer.WriteString(": ")
+			if obj.UsesEquals {
+				writer.WriteString(" = ")
+			} else {
+				writer.WriteString(": ")
+			}
 			if withColor {
 				writer.WriteString(ansi.Black)
 			}
@@ -571,13 +609,20 @@ func (node *AclNode) StringTo(writer *bufio.Writer, indentStr string, level int,
 			if withColor {
 				writer.WriteString(ansi.Cyan)
 			}
-			writer.WriteString(",\n")
-		}
-		if withColor {
-			writer.WriteString(ansi.Black)
-		}
-		for l := 0; l < level; l++ {
-			writer.WriteString(indentStr)
+
+			iLevel := level + 1
+			if isLast {
+				iLevel--
+			} else {
+				if withColor {
+					writer.WriteString(ansi.Magenta)
+				}
+				writer.WriteString(",")
+			}
+
+			if !node.maybeWriteNewline(writer, indentStr, iLevel) {
+				writer.WriteString(" ")
+			}
 		}
 		if withColor {
 			writer.WriteString(ansi.Magenta)

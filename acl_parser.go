@@ -7,29 +7,31 @@ import (
     "fmt"
     "strconv"
     "strings"
+    "log"
 )
 
 
-//line acl_parser.go:14
+//line acl_parser.go:15
 var _ACLParser_actions []byte = []byte{
 	0, 1, 0, 1, 1, 1, 2, 1, 3, 
-	1, 4, 1, 5, 1, 6, 1, 7, 
-	1, 8, 1, 9, 1, 10, 1, 11, 
-	1, 12, 1, 13, 1, 14, 1, 15, 
-	1, 16, 1, 17, 1, 18, 1, 19, 
-	1, 20, 1, 21, 1, 22, 1, 23, 
-	1, 24, 1, 25, 1, 26, 1, 27, 
-	1, 28, 1, 29, 1, 30, 1, 31, 
-	1, 32, 1, 33, 1, 34, 1, 35, 
-	2, 0, 6, 2, 0, 28, 
+	1, 4, 1, 5, 1, 6, 1, 8, 
+	1, 9, 1, 10, 1, 11, 1, 12, 
+	1, 13, 1, 14, 1, 15, 1, 16, 
+	1, 17, 1, 18, 1, 19, 1, 20, 
+	1, 21, 1, 22, 1, 23, 1, 24, 
+	1, 25, 1, 26, 1, 27, 1, 28, 
+	1, 29, 1, 30, 1, 31, 1, 32, 
+	1, 33, 1, 34, 1, 35, 1, 36, 
+	1, 37, 1, 38, 2, 0, 7, 2, 
+	0, 31, 
 }
 
 var _ACLParser_key_offsets []byte = []byte{
 	0, 0, 3, 4, 7, 8, 10, 13, 
-	16, 17, 20, 21, 23, 29, 53, 60, 
-	63, 64, 67, 68, 70, 70, 97, 100, 
-	101, 104, 106, 109, 111, 114, 116, 120, 
-	126, 
+	16, 17, 20, 21, 23, 29, 54, 61, 
+	64, 65, 68, 69, 71, 71, 98, 101, 
+	102, 105, 107, 110, 112, 115, 117, 121, 
+	127, 
 }
 
 var _ACLParser_trans_keys []byte = []byte{
@@ -37,24 +39,24 @@ var _ACLParser_trans_keys []byte = []byte{
 	10, 42, 10, 42, 47, 10, 34, 92, 
 	10, 10, 39, 92, 10, 48, 57, 48, 
 	57, 65, 70, 97, 102, 10, 33, 34, 
-	35, 39, 44, 45, 47, 58, 59, 61, 
-	95, 123, 125, 36, 64, 65, 90, 91, 
-	96, 97, 122, 124, 126, 95, 48, 57, 
-	65, 90, 97, 122, 10, 34, 92, 10, 
-	10, 39, 92, 45, 42, 47, 10, 34, 
-	35, 39, 43, 44, 45, 47, 48, 59, 
-	91, 92, 93, 94, 96, 123, 125, 33, 
-	46, 49, 57, 58, 64, 65, 122, 124, 
-	126, 10, 34, 92, 10, 10, 39, 92, 
-	48, 57, 46, 48, 57, 48, 57, 45, 
-	48, 57, 42, 47, 46, 120, 48, 57, 
-	48, 57, 65, 70, 97, 102, 95, 48, 
-	57, 65, 90, 97, 122, 
+	35, 39, 44, 45, 46, 47, 58, 59, 
+	61, 91, 92, 93, 94, 96, 123, 125, 
+	36, 64, 65, 122, 124, 126, 95, 48, 
+	57, 65, 90, 97, 122, 10, 34, 92, 
+	10, 10, 39, 92, 45, 42, 47, 10, 
+	34, 35, 39, 43, 44, 45, 47, 48, 
+	59, 91, 92, 93, 94, 96, 123, 125, 
+	33, 46, 49, 57, 58, 64, 65, 122, 
+	124, 126, 10, 34, 92, 10, 10, 39, 
+	92, 48, 57, 46, 48, 57, 48, 57, 
+	45, 48, 57, 42, 47, 46, 120, 48, 
+	57, 48, 57, 65, 70, 97, 102, 95, 
+	48, 57, 65, 90, 97, 122, 
 }
 
 var _ACLParser_single_lengths []byte = []byte{
 	0, 3, 1, 3, 1, 2, 3, 3, 
-	1, 3, 1, 0, 0, 14, 1, 3, 
+	1, 3, 1, 0, 0, 19, 1, 3, 
 	1, 3, 1, 2, 0, 17, 3, 1, 
 	3, 0, 1, 0, 1, 2, 2, 0, 
 	1, 
@@ -62,7 +64,7 @@ var _ACLParser_single_lengths []byte = []byte{
 
 var _ACLParser_range_lengths []byte = []byte{
 	0, 0, 0, 0, 0, 0, 0, 0, 
-	0, 0, 0, 1, 3, 5, 3, 0, 
+	0, 0, 0, 1, 3, 3, 3, 0, 
 	0, 0, 0, 0, 0, 5, 0, 0, 
 	0, 1, 1, 1, 1, 0, 1, 3, 
 	3, 
@@ -70,10 +72,10 @@ var _ACLParser_range_lengths []byte = []byte{
 
 var _ACLParser_index_offsets []byte = []byte{
 	0, 0, 4, 6, 10, 12, 15, 19, 
-	23, 25, 29, 31, 33, 37, 57, 62, 
-	66, 68, 72, 74, 77, 78, 101, 105, 
-	107, 111, 113, 116, 118, 121, 124, 128, 
-	132, 
+	23, 25, 29, 31, 33, 37, 60, 65, 
+	69, 71, 75, 77, 80, 81, 104, 108, 
+	110, 114, 116, 119, 121, 124, 127, 131, 
+	135, 
 }
 
 var _ACLParser_trans_targs []byte = []byte{
@@ -82,22 +84,22 @@ var _ACLParser_trans_targs []byte = []byte{
 	6, 20, 5, 7, 21, 8, 7, 7, 
 	7, 9, 21, 10, 9, 9, 9, 27, 
 	21, 31, 31, 31, 21, 13, 14, 15, 
-	16, 17, 13, 18, 19, 13, 13, 13, 
-	14, 13, 13, 13, 14, 13, 14, 13, 
-	13, 14, 14, 14, 14, 13, 1, 13, 
-	2, 1, 13, 16, 3, 13, 4, 3, 
-	16, 13, 13, 16, 13, 0, 21, 22, 
-	23, 24, 25, 21, 28, 29, 30, 21, 
-	21, 21, 21, 21, 21, 21, 21, 21, 
-	26, 21, 32, 21, 21, 7, 21, 8, 
-	7, 21, 23, 9, 21, 10, 9, 26, 
-	21, 11, 26, 21, 27, 21, 23, 26, 
-	21, 21, 23, 21, 11, 12, 26, 21, 
-	31, 31, 31, 21, 32, 32, 32, 32, 
-	21, 13, 13, 13, 13, 21, 21, 21, 
-	21, 21, 21, 13, 13, 13, 13, 13, 
-	13, 21, 21, 21, 21, 21, 21, 21, 
-	21, 21, 21, 21, 
+	16, 17, 13, 18, 13, 19, 13, 13, 
+	13, 13, 13, 13, 13, 13, 13, 13, 
+	13, 14, 13, 13, 14, 14, 14, 14, 
+	13, 1, 13, 2, 1, 13, 16, 3, 
+	13, 4, 3, 16, 13, 13, 16, 13, 
+	0, 21, 22, 23, 24, 25, 21, 28, 
+	29, 30, 21, 21, 21, 21, 21, 21, 
+	21, 21, 21, 26, 21, 32, 21, 21, 
+	7, 21, 8, 7, 21, 23, 9, 21, 
+	10, 9, 26, 21, 11, 26, 21, 27, 
+	21, 23, 26, 21, 21, 23, 21, 11, 
+	12, 26, 21, 31, 31, 31, 21, 32, 
+	32, 32, 32, 21, 13, 13, 13, 13, 
+	21, 21, 21, 21, 21, 21, 13, 13, 
+	13, 13, 13, 13, 21, 21, 21, 21, 
+	21, 21, 21, 21, 21, 21, 21, 
 }
 
 var _ACLParser_trans_actions []byte = []byte{
@@ -105,23 +107,23 @@ var _ACLParser_trans_actions []byte = []byte{
 	0, 0, 1, 0, 1, 0, 0, 1, 
 	0, 3, 0, 1, 11, 0, 0, 1, 
 	0, 1, 11, 0, 0, 1, 0, 0, 
-	43, 0, 0, 0, 43, 76, 0, 9, 
-	0, 9, 61, 0, 0, 49, 59, 49, 
-	0, 51, 53, 63, 0, 63, 0, 63, 
-	57, 0, 0, 0, 0, 65, 1, 47, 
-	0, 0, 67, 0, 1, 47, 0, 0, 
-	0, 69, 55, 0, 69, 0, 73, 9, 
-	0, 9, 0, 21, 0, 0, 9, 13, 
-	23, 29, 25, 29, 29, 15, 17, 29, 
-	9, 29, 0, 29, 27, 1, 11, 0, 
-	0, 39, 0, 1, 11, 0, 0, 9, 
-	41, 0, 9, 33, 0, 35, 0, 9, 
-	41, 19, 0, 41, 0, 0, 9, 33, 
-	0, 0, 0, 37, 0, 0, 0, 0, 
-	31, 71, 71, 71, 71, 45, 45, 45, 
-	45, 43, 43, 65, 69, 67, 69, 69, 
-	69, 41, 39, 41, 41, 33, 35, 41, 
-	41, 33, 37, 31, 
+	43, 0, 0, 0, 43, 80, 0, 9, 
+	0, 9, 63, 0, 63, 0, 49, 65, 
+	49, 55, 67, 57, 67, 67, 51, 53, 
+	67, 0, 67, 61, 0, 0, 0, 0, 
+	69, 1, 47, 0, 0, 71, 0, 1, 
+	47, 0, 0, 0, 73, 59, 0, 73, 
+	0, 77, 9, 0, 9, 0, 25, 0, 
+	0, 9, 13, 19, 29, 21, 29, 29, 
+	15, 17, 29, 9, 29, 0, 29, 27, 
+	1, 11, 0, 0, 39, 0, 1, 11, 
+	0, 0, 9, 41, 0, 9, 33, 0, 
+	35, 0, 9, 41, 23, 0, 41, 0, 
+	0, 9, 33, 0, 0, 0, 37, 0, 
+	0, 0, 0, 31, 75, 75, 75, 75, 
+	45, 45, 45, 45, 43, 43, 69, 73, 
+	71, 73, 73, 73, 41, 39, 41, 41, 
+	33, 35, 41, 41, 33, 37, 31, 
 }
 
 var _ACLParser_to_state_actions []byte = []byte{
@@ -141,11 +143,11 @@ var _ACLParser_from_state_actions []byte = []byte{
 }
 
 var _ACLParser_eof_trans []byte = []byte{
-	0, 141, 141, 141, 141, 0, 0, 145, 
-	145, 145, 145, 147, 147, 0, 148, 153, 
-	150, 153, 153, 153, 0, 0, 161, 155, 
-	161, 161, 162, 159, 161, 161, 162, 163, 
-	164, 
+	0, 144, 144, 144, 144, 0, 0, 148, 
+	148, 148, 148, 150, 150, 0, 151, 156, 
+	153, 156, 156, 156, 0, 0, 164, 158, 
+	164, 164, 165, 162, 164, 164, 165, 166, 
+	167, 
 }
 
 const ACLParser_start int = 13
@@ -153,11 +155,11 @@ const ACLParser_first_final int = 13
 const ACLParser_error int = 0
 
 const ACLParser_en_c_comment int = 5
-const ACLParser_en_obj_value int = 21
+const ACLParser_en_value_mode int = 21
 const ACLParser_en_main int = 13
 
 
-//line acl_parser.rl:13
+//line acl_parser.rl:14
 
 
 func findCol(data string, ts int) int {
@@ -181,7 +183,33 @@ func singlesToDoubles(q string) string {
     return "\"" + q[1:len(q)-1] + "\""
 }
 
-func (node *AclNode) ParseString(data string, location *ParseLocation) (err error) {
+// A key value context defines a place in the node tree against which identifiers
+// are collected to create a key path naming a second deeper location in the tree.
+// When values are encountered they are they added to this second deeper location,
+// and when the parsing of values completes we are able to return to the original
+// level of context.
+type kvCtx struct {
+
+    // The base of this context against which the keyPath is to be judged
+    node *AclNode
+
+    // A collection of keys which identifies a deeper location into the tree
+    keyPath []string
+
+    // Whether we are inside of an array scope or not. This allows us to understand
+    // if a second word is a value or a key
+    inArray bool
+
+    // Whether an equals sign was used to move to value mode or not. This gets
+    // annotated onto the value mode when values are attached
+    usesEqual bool
+}
+
+func (root *AclNode) ParseString(data string, location *ParseLocation) (err error) {
+    return root.ParseStringWithLogger(data, location, nil)
+}
+
+func (root *AclNode) ParseStringWithLogger(data string, location *ParseLocation, logger *log.Logger) (err error) {
 
     // Handle the user not supplying anything as a base reference for the parse location
     if location == nil {
@@ -198,26 +226,45 @@ func (node *AclNode) ParseString(data string, location *ParseLocation) (err erro
     stack := make([]int, 0)
     top := 0
 
-    nodeStack := make([]*AclNode, 1)
-    nodeStack[0] = node
-    keyNameStack := make([][]string, 1)
-    keyNameStack[0] = make([]string, 0)
-    knsp := 0
+    ///// End of required ragel FSM variables------
 
-    firstValue := true
-    multiLineArray := false
-
-    var value *AclNode
-
-    resetKey := func() {
-        firstValue = true
-        multiLineArray = false
-        keyNameStack[knsp] = keyNameStack[knsp][:0]
-        value = nil
+    lprintf := func(fmt string, v ...interface{}) {
+        if logger == nil {
+            return
+        }
+        logger.Printf(fmt, v...)
     }
 
-    appendKey := func(k string) {
-        keyNameStack[knsp] = append(keyNameStack[knsp], k)
+    // In addition to token parsing, we need to maintain our own context in a stack
+    // as we move into and out of object and array collections of values.
+    ctxStack := make([]kvCtx, 0, 10)
+
+    // We'll seed the ctxStack with a root node after that function is defined...
+
+    // Resets the key at the end of a value, but does not change the context.
+    // This is how we return to the current context after adding a value that
+    // was named for a possibly multiple levels deep object which implied multiple
+    // intermediate nodes.
+    resetKey := func() {
+        // Because the context stack is real structs not pointers we have to reference
+        // it directly by name not via a copy or else we don't modify what we think we
+        // are modifying
+        ctxStack[len(ctxStack)-1].keyPath = ctxStack[len(ctxStack)-1].keyPath[:0]
+        ctxStack[len(ctxStack)-1].usesEqual = false
+    }
+
+    appendKey := func(k string) error {
+        ctx := ctxStack[len(ctxStack)-1]
+
+        if ctx.inArray {        
+            // Keys are not allowed in array contexts, so something has gone terribly wrong.
+            // Most likely we have somehow returned to key mode when we meant to stay in
+            // value mode somehow.
+            return fmt.Errorf("Keys are not allowed in an array scope")
+        }
+
+        ctxStack[len(ctxStack)-1].keyPath = append(ctxStack[len(ctxStack)-1].keyPath, k)
+        return nil
     }
 
     appendQuotedKey := func(q string) error {
@@ -226,143 +273,204 @@ func (node *AclNode) ParseString(data string, location *ParseLocation) (err erro
         if err != nil {
             return errors.New("Can not parse "+q+" : "+err.Error())
         }
-        keyNameStack[knsp] = append(keyNameStack[knsp], k)
-        return nil
+
+        return appendKey(k)
     }
 
-    ensureNode := func() {
-        if value != nil {
-            return 
-        }
 
-        // Take the current node and make sure the path from current to
-        // the keyName exists
-        // Don't consider keyName == 0 because that shouldn't have happened
-        if len(keyNameStack[knsp]) == 0 {
-            panic("keyName has no elements")
-        }
+    // Find the currently named target, creating it if necessary
+    findCurrentTarget := func() *AclNode {
+        ctx := ctxStack[len(ctxStack)-1]
 
-        // Get / build all intermediate nodes
-        cNode := nodeStack[len(nodeStack)-1]
-        var nextNode *AclNode
-        for ix:=0; ix < len(keyNameStack[knsp]); ix ++ {
-            name := keyNameStack[knsp][ix]
+        // Start with the current node
+        target := ctx.node
+
+        lprintf("findCurrentTarget ctx=%v\n", ctx)        
+
+        // Need to follow the path (if any) down, possibly creating nodes
+        // as we go along
+        for ix:=0; ix<len(ctx.keyPath); ix++ {
+            name := ctx.keyPath[ix]
+
+            var next *AclNode
             if name[0] == '!' {
+                // Gotta nuke any existing things, so we do
+                // that by purposely not looking up the node
                 name = name[1:]
-                if firstValue {
-                    nextNode = nil
-                    firstValue = false
-                } else {
-                    nextNode = cNode.Children[name]
-                }
             } else {
-                nextNode = cNode.Children[name]
+                // Try to get an existing node (which might fail)
+                next = target.Children[name]
             }
 
-            if nextNode == nil {
-                // Gotta make it and add it into the list of childrenes
-                nextNode = NewAclNode()
-                cNode.Children[name] = nextNode
+            if next == nil {
+                // Oh hey, it's new (or a replacement in the reset case)
+                next = NewAclNode()
+                target.Children[name] = next
             }
-            cNode = nextNode
+
+            target = next
         }
 
-        // Set the "value" node to the cNode
-        value = cNode
+        return target        
+    }
+
+    // Attach a value at the currently named location in the context
+    attachValue := func(v interface{}) {
+        target := findCurrentTarget()
+        target.Values = append(target.Values, v)
+
+        // Record whether this used an equals sign or not
+        target.UsesEquals = ctxStack[len(ctxStack)-1].usesEqual
     }
 
     stringValue := func(v string) {
         // fmt.Printf("stringValue\n\tkeyNameStack=%v\n\tnodeStack=%v\n", keyNameStack, nodeStack)
         // fmt.Printf("\tvalue=%v\n", value)
 
-        ensureNode()
-        value.Values = append(value.Values, v)
+        attachValue(v)
     }
 
     quotedStringValue := func(q string) error {
         // fmt.Printf("quotedStringValue\n\tkeyNameStack=%v\n\tnodeStack=%v\n", keyNameStack, nodeStack)
         // fmt.Printf("\tvalue=%v\n", value)
 
-        ensureNode()
         q = singlesToDoubles(q)
         v, err := strconv.Unquote(q)
         if err != nil {
             return errors.New("Can not parse "+q+" : "+err.Error())
         }
 
-        value.Values = append(value.Values, v)
+        attachValue(v)
         return nil
     }
 
     integerValue := func(v string) error {
         // fmt.Printf("integerValue\n\tkeyNameStack=%v\n\tnodeStack=%v\n", keyNameStack, nodeStack)
         // fmt.Printf("\tvalue=%v\n", value)
-        ensureNode()
 
         i, err := strconv.ParseInt(v, 0, 0)
         if err != nil {
             return err
         }
-        value.Values = append(value.Values, i)
+        attachValue(i)
         return nil
     }
 
     floatValue := func(v string) error {
-        ensureNode()
+        // ensureNode()
 
         f, err := strconv.ParseFloat(v, 64)
         if err != nil {
             return err
         }
-        value.Values = append(value.Values, f)
+        attachValue(f)
         return nil
     }
 
-    descend := func() {
-        // fmt.Printf("Descend\n\tkeyNameStack=%v\n\tnodeStack=%v\n", keyNameStack, nodeStack)
-        // fmt.Printf("\tvalue=%v\n", value)
+    pushContext := func(next *AclNode) {        
+        ctxStack = append(ctxStack, kvCtx{
+            node: next,
+            keyPath: make([]string,0),
+            })
 
-        if len(keyNameStack[knsp]) == 0 {
-            // It's not really a descent. Since no key is defined, we just
-            // collapse this into the current node. However, because we need
-            // to be able to ascend, we have to push still.
-            nodeStack = append(nodeStack, nodeStack[knsp])
-            keyNameStack = append(keyNameStack, keyNameStack[knsp])
-            knsp++
-            return
+        // We need to propogate uses equals into the next context unless it is the root element
+        // that was just pushed
+        if len(ctxStack) > 1 {
+            ctxStack[len(ctxStack)-1].usesEqual = ctxStack[len(ctxStack)-2].usesEqual
         }
-
-        // Make sure the currently named node exists. This will also
-        // set value to the currently named node
-        ensureNode()
-
-        // Because we have descended we must push
-        nodeStack = append(nodeStack, value)
-        keyNameStack = append(keyNameStack, make([]string, 0))
-        value = nil
-        knsp++
     }
 
-    ascend := func() bool {
-        // fmt.Printf("Ascend\n\tkeyNameStack=%v\n\tnodeStack=%v\n", keyNameStack, nodeStack)
-        // fmt.Printf("\tvalue=%v\n", value)
-
+    popContext := func() error {
         // Can't pop beyond the first node
-        if len(nodeStack) <= 1 {
-            return false
+        if len(ctxStack) <= 1 {
+            return fmt.Errorf("Mismatched scope braces. Trying to pop the root scope.")
         }
 
-        // Ok, just a pop
-        nodeStack = nodeStack[0:len(nodeStack)-1]
-        keyNameStack = keyNameStack[0:knsp]
-        knsp--
-        resetKey()
-        return true
+        ctxStack = ctxStack[:len(ctxStack)-1]
+        return nil
+    }
+
+    startObject := func() {
+        ctx := ctxStack[len(ctxStack)-1]
+
+        if ctx.inArray {
+            // We need to make a new node, which will become our context, and instead
+            // of being a child, it will be a value in the current context
+            next := NewAclNode()
+            ctx.node.Values = append(ctx.node.Values, next)
+
+            // Now move into that new context
+            pushContext(next)
+
+        } else {
+            // Just push our current target as the new context
+            pushContext(findCurrentTarget())
+        }
+    }
+
+    endObject := func() error {
+        ctx := ctxStack[len(ctxStack)-1]
+
+        if ctx.inArray {
+            return fmt.Errorf("Mismatched brackets. Object end found while not inside of an object scope.")
+        }
+
+        // All the logic for where values get attached happens on the descent so
+        // all we have to do is pop the context and we're back in business
+        return popContext()
+    }
+
+    // Start a new array which might be a sub array or not
+    startArray := func() {
+        ctx := ctxStack[len(ctxStack)-1]
+
+        if ctx.inArray {
+            // It is a sub-array which means we push a new context which will collect
+            // the values into a new "node", but that node's value array will actually
+            // be placed into the value array of the current node
+            shadow := NewAclNode()
+            // subArrayValues := shadow.Values
+            attachValue(shadow)
+
+            // The new shadow node isn't connected to anything, so keys attached
+            // to it aren't going to be interesting at all. It's just values
+            pushContext(shadow)
+        } else {
+            // It's not a sub-array, so we are really just referring to the current
+            // target level object. However, we go ahead and push a new context which
+            // refers to the current target's value array, instead of a new sub-array.
+
+            pushContext(findCurrentTarget())
+        }
+
+        // Mark this new context as being an array target not a map target
+        ctxStack[len(ctxStack)-1].inArray = true
+    }
+
+    endArray := func() error {
+        ctx := ctxStack[len(ctxStack)-1]
+
+        if !ctx.inArray {
+            return fmt.Errorf("Mismatched brackets. Array end found while not inside of an array scope.")
+        }
+
+        // Pop the existing context
+        return popContext()
+    }
+
+    // Used to determine what mode is appropriate after an array or object scope has ended
+    inArray := func() bool {
+        return ctxStack[len(ctxStack)-1].inArray
     }
 
 
+    // We start with a single root, which is node on which ParseString is called
+    pushContext(root)
+
+
+    // Writing ragel comments with #// means they keep syntax highlighting working in sublime
     
-//line acl_parser.go:366
+//line acl_parser.go:474
 	{
 	cs = ACLParser_start
 	top = 0
@@ -371,7 +479,7 @@ func (node *AclNode) ParseString(data string, location *ParseLocation) (err erro
 	act = 0
 	}
 
-//line acl_parser.go:375
+//line acl_parser.go:483
 	{
 	var _klen int
 	var _trans int
@@ -394,7 +502,7 @@ _resume:
 //line NONE:1
 ts = p
 
-//line acl_parser.go:398
+//line acl_parser.go:506
 		}
 	}
 
@@ -464,10 +572,29 @@ _eof_trans:
 		_acts++
 		switch _ACLParser_actions[_acts-1] {
 		case 0:
-//line acl_parser.rl:224
- location.Line++ 
+//line acl_parser.rl:331
+ 
+            location.Line++ 
+            // The entire stack becomes multiline
+            for i:=0; i<len(ctxStack); i++ {
+                ctx := &ctxStack[i]
+                ctx.node.IsMultiline = true
+
+                // Now we also have to walk down the keyPath in this context to find
+                // intermediate nodes which are not necessarily in the NEXT context on
+                // the stack and make sure they all get set to multiline also. This is
+                // necessary because at the time the nodes were created we may not
+                // have known that multiline was going to be a thing
+                nodeCursor := ctx.node
+                for kix:=0; nodeCursor != nil && kix<len(ctx.keyPath); kix++ {
+                    key := ctx.keyPath[kix]
+                    nodeCursor.IsMultiline = true
+                    nodeCursor = nodeCursor.Children[key]
+                }
+            }
+        
 		case 1:
-//line acl_parser.rl:228
+//line acl_parser.rl:354
 top--; cs = stack[top]
 goto _again
 
@@ -476,10 +603,10 @@ goto _again
 te = p+1
 
 		case 5:
-//line acl_parser.rl:262
+//line acl_parser.rl:390
 te = p+1
 {
-                // fmt.Printf("Quoted literal %v\n", data[ts:te])
+                lprintf("Quoted literal %v\n", data[ts:te])
                 err = quotedStringValue(data[ts:te])
                 if err != nil {
                     location.Message = fmt.Sprintf("Error parsing quoted value: %v", err)
@@ -490,37 +617,103 @@ goto _again
                 }
             }
 		case 6:
-//line acl_parser.rl:305
+//line acl_parser.rl:435
 te = p+1
 {
-                if !multiLineArray {
-                    resetKey()
-                    top--; cs = stack[top]
+                if inArray() {
+                    location.Message = "Invalid ';' found while in an array context"
+                    location.Col = findCol(data, ts)
+                    cs = (ACLParser_error)
 goto _again
 
-                } // else, let it end the current value, but not the array
-            }
-		case 7:
-//line acl_parser.rl:314
-te = p+1
-{
-                p--
+                }
+
+                // Since we aren't in an array this allows a return to key mode with
+                // a reset key in the same way that a newline not in an array does
+                resetKey()
                 top--; cs = stack[top]
 goto _again
 
             }
-		case 8:
-//line acl_parser.rl:319
+		case 7:
+//line acl_parser.rl:450
 te = p+1
 {
-                resetKey()
-                p--
+                lprintf("Value newline. inArray()=%v\n", inArray())
+                if !inArray() {
+                    lprintf("  return to key mode\n")
+                    // Behave the same as a semicolon does if in an object context.
+                    resetKey()
+                    top--; cs = stack[top]
+goto _again
+
+                }
+
+                // Because we are in an array we stay in value mode. There are no
+                // keys allowed in array contexts so nothing to reset.
+            }
+		case 8:
+//line acl_parser.rl:465
+te = p+1
+{
+                startObject();
                 top--; cs = stack[top]
 goto _again
 
             }
 		case 9:
-//line acl_parser.rl:326
+//line acl_parser.rl:473
+te = p+1
+{                
+                err := endObject()
+                if err != nil {
+                    location.Message = err.Error()
+                    location.Col = findCol(data, ts)              
+                    cs = (ACLParser_error)
+goto _again
+
+                }
+
+                if !inArray() {
+                    // Back to key mode
+                    lprintf("Object end, return to key mode")
+                    resetKey()
+                    top--; cs = stack[top]
+goto _again
+
+                }
+                // Since we are in an array stay in value mode so that we
+                // keep adding values into the named target
+            }
+		case 10:
+//line acl_parser.rl:492
+te = p+1
+{
+                startArray()
+            }
+		case 11:
+//line acl_parser.rl:498
+te = p+1
+{
+                err := endArray()
+                if err != nil {
+                    location.Message = err.Error()
+                    location.Col = findCol(data, ts)              
+                    cs = (ACLParser_error)
+goto _again
+
+                }
+
+                if !inArray() {
+                    // Back to key mode
+                    resetKey()
+                    top--; cs = stack[top]
+goto _again
+
+                }                
+            }
+		case 12:
+//line acl_parser.rl:515
 te = p+1
 { { 
             if top >= len(stack)-1 {
@@ -528,57 +721,51 @@ te = p+1
             }
         stack[top] = cs; top++; cs = 5; goto _again
  } }
-		case 10:
-//line acl_parser.rl:335
+		case 13:
+//line acl_parser.rl:524
 te = p+1
 {
-                // fmt.Printf("Comma\n")
-            }
-		case 11:
-//line acl_parser.rl:340
-te = p+1
-{
-                multiLineArray = true
-            }
-		case 12:
-//line acl_parser.rl:345
-te = p+1
-{
-                resetKey()
-                top--; cs = stack[top]
+                if !inArray() {
+                    // Not sugar, return to key mode
+                    lprintf("Comma in object, return to key mode\n")
+                    resetKey()
+                    top--; cs = stack[top]
 goto _again
 
-            }
-		case 13:
-//line acl_parser.rl:351
-te = p+1
-{
-                // fmt.Printf("Value Whitespace '%v'\n", data[ts:te])
+                } else {
+                    lprintf("Comma in array, ignore as sugar\n")
+                }
             }
 		case 14:
-//line acl_parser.rl:356
+//line acl_parser.rl:537
 te = p+1
 {
-                location.Message = fmt.Sprintf("Syntax error while looking for a value: %v\n", data[ts:ts+1])
+                lprintf("Value Whitespace '%v'\n", data[ts:te])
+            }
+		case 15:
+//line acl_parser.rl:542
+te = p+1
+{
+                location.Message = fmt.Sprintf("Syntax error. Invalid character '%v' while looking for a value.", data[ts:ts+1])
                 location.Col = findCol(data, ts)              
                 cs = (ACLParser_error)
 goto _again
 
             }
-		case 15:
-//line acl_parser.rl:257
+		case 16:
+//line acl_parser.rl:385
 te = p
 p--
 { 
-                // fmt.Printf("Value Identifier %v\n", data[ts:te])
+                lprintf("Value Identifier %v\n", data[ts:te])
                 stringValue(data[ts:te])
             }
-		case 16:
-//line acl_parser.rl:273
+		case 17:
+//line acl_parser.rl:401
 te = p
 p--
 {
-                // fmt.Printf("Value Integer %v\n", data[ts:te])
+                lprintf("Value Integer %v\n", data[ts:te])
                 err = integerValue(data[ts:te])
                 if err != nil {
                     location.Message = fmt.Sprintf("Error parsing integer value: %v", err)
@@ -588,12 +775,12 @@ goto _again
 
                 }
             }
-		case 17:
-//line acl_parser.rl:284
+		case 18:
+//line acl_parser.rl:412
 te = p
 p--
 {
-                // fmt.Printf("Value Float %v\n", data[ts:te])
+                lprintf("Value Float %v\n", data[ts:te])
                 err = floatValue(data[ts:te])
                 if err != nil {
                     location.Message = fmt.Sprintf("Error parsing float value: %v", err)
@@ -603,12 +790,12 @@ goto _again
 
                 }
             }
-		case 18:
-//line acl_parser.rl:295
+		case 19:
+//line acl_parser.rl:423
 te = p
 p--
 {
-                // fmt.Printf("Value Hex %v\n", data[ts:te])
+                lprintf("Value Hex %v\n", data[ts:te])
                 err = integerValue(data[ts:te])
                 if err != nil {
                     location.Message = fmt.Sprintf("Error parsing hex value: %v", err)
@@ -618,27 +805,27 @@ goto _again
 
                 }
             }
-		case 19:
-//line acl_parser.rl:331
+		case 20:
+//line acl_parser.rl:520
 te = p
 p--
 
-		case 20:
-//line acl_parser.rl:356
+		case 21:
+//line acl_parser.rl:542
 te = p
 p--
 {
-                location.Message = fmt.Sprintf("Syntax error while looking for a value: %v\n", data[ts:ts+1])
+                location.Message = fmt.Sprintf("Syntax error. Invalid character '%v' while looking for a value.", data[ts:ts+1])
                 location.Col = findCol(data, ts)              
                 cs = (ACLParser_error)
 goto _again
 
             }
-		case 21:
-//line acl_parser.rl:273
+		case 22:
+//line acl_parser.rl:401
 p = (te) - 1
 {
-                // fmt.Printf("Value Integer %v\n", data[ts:te])
+                lprintf("Value Integer %v\n", data[ts:te])
                 err = integerValue(data[ts:te])
                 if err != nil {
                     location.Message = fmt.Sprintf("Error parsing integer value: %v", err)
@@ -648,18 +835,18 @@ goto _again
 
                 }
             }
-		case 22:
-//line acl_parser.rl:356
+		case 23:
+//line acl_parser.rl:542
 p = (te) - 1
 {
-                location.Message = fmt.Sprintf("Syntax error while looking for a value: %v\n", data[ts:ts+1])
+                location.Message = fmt.Sprintf("Syntax error. Invalid character '%v' while looking for a value.", data[ts:ts+1])
                 location.Col = findCol(data, ts)              
                 cs = (ACLParser_error)
 goto _again
 
             }
-		case 23:
-//line acl_parser.rl:372
+		case 24:
+//line acl_parser.rl:563
 te = p+1
 {
                 k := data[ts:te]
@@ -680,12 +867,13 @@ goto _again
                     }
                 }
             }
-		case 24:
-//line acl_parser.rl:388
+		case 25:
+//line acl_parser.rl:580
 te = p+1
 {
-                //fmt.Printf("Call obj_value '%v'\n", data[ts:te])
-                multiLineArray = false
+                ctxStack[len(ctxStack)-1].usesEqual = (data[ts] == '=')
+
+                lprintf("Change to value_mode '%v' usesEqual=%v\n", data[ts:te], ctxStack[len(ctxStack)-1].usesEqual)
                 { 
             if top >= len(stack)-1 {
                 stack = append(stack, 0)
@@ -693,26 +881,61 @@ te = p+1
         stack[top] = cs; top++; cs = 21; goto _again
  }
             }
-		case 25:
-//line acl_parser.rl:394
-te = p+1
-{
-                descend()
-            }
 		case 26:
-//line acl_parser.rl:398
+//line acl_parser.rl:588
 te = p+1
 {
-                if !ascend() {
-                    location.Message = "Syntax error unmatched } "
+                startObject()
+            }
+		case 27:
+//line acl_parser.rl:595
+te = p+1
+{                
+                err := endObject()
+                if err != nil {
+                    location.Message = err.Error()
                     location.Col = findCol(data, ts)              
                     cs = (ACLParser_error)
 goto _again
 
                 }
+
+                if inArray() {
+                    { 
+            if top >= len(stack)-1 {
+                stack = append(stack, 0)
             }
-		case 27:
-//line acl_parser.rl:407
+        stack[top] = cs; top++; cs = 21; goto _again
+ }
+                }
+
+                // Do have to reset the key though
+                resetKey()
+            }
+		case 28:
+//line acl_parser.rl:612
+te = p+1
+{
+                startArray()
+                { 
+            if top >= len(stack)-1 {
+                stack = append(stack, 0)
+            }
+        stack[top] = cs; top++; cs = 21; goto _again
+ }
+            }
+		case 29:
+//line acl_parser.rl:618
+te = p+1
+{
+                location.Message = "Array scope ended while in key mode indicates a parser state error."
+                location.Col = findCol(data, ts)
+                cs = (ACLParser_error)
+goto _again
+
+            }
+		case 30:
+//line acl_parser.rl:625
 te = p+1
 { { 
             if top >= len(stack)-1 {
@@ -720,69 +943,75 @@ te = p+1
             }
         stack[top] = cs; top++; cs = 5; goto _again
  } }
-		case 28:
-//line acl_parser.rl:414
+		case 31:
+//line acl_parser.rl:632
 te = p+1
 {
                 // fmt.Printf("Other '%v'\n", data[ts:te])
             }
-		case 29:
-//line acl_parser.rl:418
-te = p+1
-{
-                resetKey()
-            }
-		case 30:
-//line acl_parser.rl:424
-te = p+1
-{
-
-            }
-		case 31:
-//line acl_parser.rl:429
-te = p+1
-{
-                location.Message = fmt.Sprintf("Syntax error while looking for a key name: %v\n", data[ts:ts+1])
-                location.Col = findCol(data, ts)              
-                cs = (ACLParser_error)
-goto _again
-
-            }
 		case 32:
-//line acl_parser.rl:367
-te = p
-p--
-{ 
-                //fmt.Printf("Key Identifier %v\n", data[ts:te])
-                appendKey(data[ts:te])
+//line acl_parser.rl:640
+te = p+1
+{
+
             }
 		case 33:
-//line acl_parser.rl:410
-te = p
-p--
-
-		case 34:
-//line acl_parser.rl:429
-te = p
-p--
+//line acl_parser.rl:649
+te = p+1
 {
-                location.Message = fmt.Sprintf("Syntax error while looking for a key name: %v\n", data[ts:ts+1])
+                if len(ctxStack[len(ctxStack)-1].keyPath) > 0 {
+                    location.Message = "Key names found without a value."
+                    location.Col = findCol(data, ts)
+                    cs = (ACLParser_error)
+goto _again
+                    
+                }
+            }
+		case 34:
+//line acl_parser.rl:658
+te = p+1
+{
+                location.Message = fmt.Sprintf("Syntax error. Invalid character '%v' while looking for a key.", data[ts:ts+1])
                 location.Col = findCol(data, ts)              
                 cs = (ACLParser_error)
 goto _again
 
             }
 		case 35:
-//line acl_parser.rl:429
-p = (te) - 1
+//line acl_parser.rl:558
+te = p
+p--
+{ 
+                lprintf("Key Identifier %v\n", data[ts:te])
+                appendKey(data[ts:te])
+            }
+		case 36:
+//line acl_parser.rl:628
+te = p
+p--
+
+		case 37:
+//line acl_parser.rl:658
+te = p
+p--
 {
-                location.Message = fmt.Sprintf("Syntax error while looking for a key name: %v\n", data[ts:ts+1])
+                location.Message = fmt.Sprintf("Syntax error. Invalid character '%v' while looking for a key.", data[ts:ts+1])
                 location.Col = findCol(data, ts)              
                 cs = (ACLParser_error)
 goto _again
 
             }
-//line acl_parser.go:786
+		case 38:
+//line acl_parser.rl:658
+p = (te) - 1
+{
+                location.Message = fmt.Sprintf("Syntax error. Invalid character '%v' while looking for a key.", data[ts:ts+1])
+                location.Col = findCol(data, ts)              
+                cs = (ACLParser_error)
+goto _again
+
+            }
+//line acl_parser.go:1015
 		}
 	}
 
@@ -796,7 +1025,7 @@ _again:
 //line NONE:1
 ts = 0
 
-//line acl_parser.go:800
+//line acl_parser.go:1029
 		}
 	}
 
@@ -818,7 +1047,7 @@ ts = 0
 	_out: {}
 	}
 
-//line acl_parser.rl:439
+//line acl_parser.rl:668
 
 
     if cs == ACLParser_error {
