@@ -306,6 +306,7 @@ func (root *AclNode) ParseStringWithLogger(data string, location *ParseLocation,
                 // Oh hey, it's new (or a replacement in the reset case)
                 next = NewAclNode()
                 target.Children[name] = next
+                target.OrderedChildNames = append(target.OrderedChildNames, name)
             }
 
             target = next
@@ -470,7 +471,7 @@ func (root *AclNode) ParseStringWithLogger(data string, location *ParseLocation,
 
     // Writing ragel comments with #// means they keep syntax highlighting working in sublime
     
-//line acl_parser.go:474
+//line acl_parser.go:475
 	{
 	cs = ACLParser_start
 	top = 0
@@ -479,7 +480,7 @@ func (root *AclNode) ParseStringWithLogger(data string, location *ParseLocation,
 	act = 0
 	}
 
-//line acl_parser.go:483
+//line acl_parser.go:484
 	{
 	var _klen int
 	var _trans int
@@ -502,7 +503,7 @@ _resume:
 //line NONE:1
 ts = p
 
-//line acl_parser.go:506
+//line acl_parser.go:507
 		}
 	}
 
@@ -572,7 +573,7 @@ _eof_trans:
 		_acts++
 		switch _ACLParser_actions[_acts-1] {
 		case 0:
-//line acl_parser.rl:331
+//line acl_parser.rl:332
  
             location.Line++ 
             // The entire stack becomes multiline
@@ -594,7 +595,7 @@ _eof_trans:
             }
         
 		case 1:
-//line acl_parser.rl:354
+//line acl_parser.rl:355
 top--; cs = stack[top]
 goto _again
 
@@ -603,7 +604,7 @@ goto _again
 te = p+1
 
 		case 5:
-//line acl_parser.rl:390
+//line acl_parser.rl:391
 te = p+1
 {
                 lprintf("Quoted literal %v\n", data[ts:te])
@@ -617,7 +618,7 @@ goto _again
                 }
             }
 		case 6:
-//line acl_parser.rl:435
+//line acl_parser.rl:436
 te = p+1
 {
                 if inArray() {
@@ -636,7 +637,7 @@ goto _again
 
             }
 		case 7:
-//line acl_parser.rl:450
+//line acl_parser.rl:451
 te = p+1
 {
                 lprintf("Value newline. inArray()=%v\n", inArray())
@@ -653,7 +654,7 @@ goto _again
                 // keys allowed in array contexts so nothing to reset.
             }
 		case 8:
-//line acl_parser.rl:465
+//line acl_parser.rl:466
 te = p+1
 {
                 startObject();
@@ -662,7 +663,7 @@ goto _again
 
             }
 		case 9:
-//line acl_parser.rl:473
+//line acl_parser.rl:474
 te = p+1
 {                
                 err := endObject()
@@ -686,13 +687,13 @@ goto _again
                 // keep adding values into the named target
             }
 		case 10:
-//line acl_parser.rl:492
+//line acl_parser.rl:493
 te = p+1
 {
                 startArray()
             }
 		case 11:
-//line acl_parser.rl:498
+//line acl_parser.rl:499
 te = p+1
 {
                 err := endArray()
@@ -713,7 +714,7 @@ goto _again
                 }                
             }
 		case 12:
-//line acl_parser.rl:515
+//line acl_parser.rl:516
 te = p+1
 { { 
             if top >= len(stack)-1 {
@@ -722,7 +723,7 @@ te = p+1
         stack[top] = cs; top++; cs = 5; goto _again
  } }
 		case 13:
-//line acl_parser.rl:524
+//line acl_parser.rl:525
 te = p+1
 {
                 if !inArray() {
@@ -737,13 +738,13 @@ goto _again
                 }
             }
 		case 14:
-//line acl_parser.rl:537
+//line acl_parser.rl:538
 te = p+1
 {
                 lprintf("Value Whitespace '%v'\n", data[ts:te])
             }
 		case 15:
-//line acl_parser.rl:542
+//line acl_parser.rl:543
 te = p+1
 {
                 location.Message = fmt.Sprintf("Syntax error. Invalid character '%v' while looking for a value.", data[ts:ts+1])
@@ -753,7 +754,7 @@ goto _again
 
             }
 		case 16:
-//line acl_parser.rl:385
+//line acl_parser.rl:386
 te = p
 p--
 { 
@@ -761,7 +762,7 @@ p--
                 stringValue(data[ts:te])
             }
 		case 17:
-//line acl_parser.rl:401
+//line acl_parser.rl:402
 te = p
 p--
 {
@@ -776,7 +777,7 @@ goto _again
                 }
             }
 		case 18:
-//line acl_parser.rl:412
+//line acl_parser.rl:413
 te = p
 p--
 {
@@ -791,7 +792,7 @@ goto _again
                 }
             }
 		case 19:
-//line acl_parser.rl:423
+//line acl_parser.rl:424
 te = p
 p--
 {
@@ -806,12 +807,12 @@ goto _again
                 }
             }
 		case 20:
-//line acl_parser.rl:520
+//line acl_parser.rl:521
 te = p
 p--
 
 		case 21:
-//line acl_parser.rl:542
+//line acl_parser.rl:543
 te = p
 p--
 {
@@ -822,7 +823,7 @@ goto _again
 
             }
 		case 22:
-//line acl_parser.rl:401
+//line acl_parser.rl:402
 p = (te) - 1
 {
                 lprintf("Value Integer %v\n", data[ts:te])
@@ -836,7 +837,7 @@ goto _again
                 }
             }
 		case 23:
-//line acl_parser.rl:542
+//line acl_parser.rl:543
 p = (te) - 1
 {
                 location.Message = fmt.Sprintf("Syntax error. Invalid character '%v' while looking for a value.", data[ts:ts+1])
@@ -846,7 +847,7 @@ goto _again
 
             }
 		case 24:
-//line acl_parser.rl:563
+//line acl_parser.rl:564
 te = p+1
 {
                 k := data[ts:te]
@@ -868,7 +869,7 @@ goto _again
                 }
             }
 		case 25:
-//line acl_parser.rl:580
+//line acl_parser.rl:581
 te = p+1
 {
                 ctxStack[len(ctxStack)-1].usesEqual = (data[ts] == '=')
@@ -882,13 +883,13 @@ te = p+1
  }
             }
 		case 26:
-//line acl_parser.rl:588
+//line acl_parser.rl:589
 te = p+1
 {
                 startObject()
             }
 		case 27:
-//line acl_parser.rl:595
+//line acl_parser.rl:596
 te = p+1
 {                
                 err := endObject()
@@ -913,7 +914,7 @@ goto _again
                 resetKey()
             }
 		case 28:
-//line acl_parser.rl:612
+//line acl_parser.rl:613
 te = p+1
 {
                 startArray()
@@ -925,7 +926,7 @@ te = p+1
  }
             }
 		case 29:
-//line acl_parser.rl:618
+//line acl_parser.rl:619
 te = p+1
 {
                 location.Message = "Array scope ended while in key mode indicates a parser state error."
@@ -935,7 +936,7 @@ goto _again
 
             }
 		case 30:
-//line acl_parser.rl:625
+//line acl_parser.rl:626
 te = p+1
 { { 
             if top >= len(stack)-1 {
@@ -944,19 +945,19 @@ te = p+1
         stack[top] = cs; top++; cs = 5; goto _again
  } }
 		case 31:
-//line acl_parser.rl:632
+//line acl_parser.rl:633
 te = p+1
 {
                 // fmt.Printf("Other '%v'\n", data[ts:te])
             }
 		case 32:
-//line acl_parser.rl:640
+//line acl_parser.rl:641
 te = p+1
 {
 
             }
 		case 33:
-//line acl_parser.rl:649
+//line acl_parser.rl:650
 te = p+1
 {
                 if len(ctxStack[len(ctxStack)-1].keyPath) > 0 {
@@ -968,7 +969,7 @@ goto _again
                 }
             }
 		case 34:
-//line acl_parser.rl:658
+//line acl_parser.rl:659
 te = p+1
 {
                 location.Message = fmt.Sprintf("Syntax error. Invalid character '%v' while looking for a key.", data[ts:ts+1])
@@ -978,7 +979,7 @@ goto _again
 
             }
 		case 35:
-//line acl_parser.rl:558
+//line acl_parser.rl:559
 te = p
 p--
 { 
@@ -986,12 +987,12 @@ p--
                 appendKey(data[ts:te])
             }
 		case 36:
-//line acl_parser.rl:628
+//line acl_parser.rl:629
 te = p
 p--
 
 		case 37:
-//line acl_parser.rl:658
+//line acl_parser.rl:659
 te = p
 p--
 {
@@ -1002,7 +1003,7 @@ goto _again
 
             }
 		case 38:
-//line acl_parser.rl:658
+//line acl_parser.rl:659
 p = (te) - 1
 {
                 location.Message = fmt.Sprintf("Syntax error. Invalid character '%v' while looking for a key.", data[ts:ts+1])
@@ -1011,7 +1012,7 @@ p = (te) - 1
 goto _again
 
             }
-//line acl_parser.go:1015
+//line acl_parser.go:1016
 		}
 	}
 
@@ -1025,7 +1026,7 @@ _again:
 //line NONE:1
 ts = 0
 
-//line acl_parser.go:1029
+//line acl_parser.go:1030
 		}
 	}
 
@@ -1047,7 +1048,7 @@ ts = 0
 	_out: {}
 	}
 
-//line acl_parser.rl:668
+//line acl_parser.rl:669
 
 
     if cs == ACLParser_error {

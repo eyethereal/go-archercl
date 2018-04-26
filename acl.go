@@ -15,7 +15,7 @@ import (
 	"math/rand"
 	"os"
 	"os/user"
-	"sort"
+	//"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -245,22 +245,22 @@ func (node *AclNode) ParseEnviron(env []string) {
 
 func (node *AclNode) ChildAsInt(names ...string) int {
 	cNode := node.Child(names...)
-	return cNode.AsIntN(0)
+	return cNode.AsInt()
 }
 
 func (node *AclNode) ChildAsFloat(names ...string) float64 {
 	cNode := node.Child(names...)
-	return cNode.AsFloatN(0)
+	return cNode.AsFloat()
 }
 
 func (node *AclNode) ChildAsString(names ...string) string {
 	cNode := node.Child(names...)
-	return cNode.AsStringN(0)
+	return cNode.AsString()
 }
 
 func (node *AclNode) ChildAsBool(names ...string) bool {
 	cNode := node.Child(names...)
-	return cNode.AsBoolN(0)
+	return cNode.AsBool()
 }
 
 func (node *AclNode) ChildAsStringList(names ...string) []string {
@@ -292,7 +292,7 @@ func (node *AclNode) ChildAsBytes(names ...string) []byte {
 
 func (node *AclNode) DefChildAsInt(def int, names ...string) int {
 	cNode := node.Child(names...)
-	out := cNode.AsIntN(0)
+	out := cNode.AsInt()
 	if out == 0 {
 		return def
 	}
@@ -301,7 +301,7 @@ func (node *AclNode) DefChildAsInt(def int, names ...string) int {
 
 func (node *AclNode) DefChildAsFloat(def float64, names ...string) float64 {
 	cNode := node.Child(names...)
-	out := cNode.AsFloatN(0)
+	out := cNode.AsFloat()
 	if out == 0.0 {
 		return def
 	}
@@ -310,7 +310,7 @@ func (node *AclNode) DefChildAsFloat(def float64, names ...string) float64 {
 
 func (node *AclNode) DefChildAsString(def string, names ...string) string {
 	cNode := node.Child(names...)
-	out := cNode.AsStringN(0)
+	out := cNode.AsString()
 	if len(out) == 0 {
 		return def
 	}
@@ -344,22 +344,47 @@ func (node *AclNode) Len() int {
 	return len(node.Values)
 }
 
+func (node *AclNode) IsArray() bool {
+	return node.Len() > 1
+}
+
+// By default return the LAST value as opposed to the first. We used to return the
+// first but it seems more natural to use an "overwrite" behavior while preserving
+// the option for people to get the first if they really want it
 func (node *AclNode) AsInt() int {
-	return node.AsIntN(0)
+	return node.AsIntN(len(node.Values) - 1)
 }
 
 func (node *AclNode) AsFloat() float64 {
-	return node.AsFloatN(0)
+	return node.AsFloatN(len(node.Values) - 1)
 }
 
 func (node *AclNode) AsString() string {
-	return node.AsStringN(0)
+	return node.AsStringN(len(node.Values) - 1)
 }
 
 func (node *AclNode) AsBool() bool {
+	return node.AsBoolN(len(node.Values) - 1)
+}
+
+// Get the first vaues
+func (node *AclNode) FirstAsInt() int {
+	return node.AsIntN(0)
+}
+
+func (node *AclNode) FirstAsFloat() float64 {
+	return node.AsFloatN(0)
+}
+
+func (node *AclNode) FirstAsString() string {
+	return node.AsStringN(0)
+}
+
+func (node *AclNode) FirstAsBool() bool {
 	return node.AsBoolN(0)
 }
 
+// Get any on the values
 func (node *AclNode) AsIntN(ix int) int {
 	if node == nil || node.Values == nil || len(node.Values) < 1 {
 		return 0
@@ -455,6 +480,8 @@ func (node *AclNode) AsBoolN(ix int) bool {
 	}
 	return r
 }
+
+//////////////////////////////////////////////////////
 
 func (node *AclNode) valueTo(writer *bufio.Writer, indentStr string, level int, withColor bool, value interface{}) {
 
@@ -571,13 +598,17 @@ func (node *AclNode) StringTo(writer *bufio.Writer, indentStr string, level int,
 			writer.WriteString(" ")
 		}
 
-		// We go to the extra trouble to sort the keys here so that
-		// the output is predictable, which aids in testing.
-		keys := make([]string, 0, len(node.Children))
-		for name, _ := range node.Children {
-			keys = append(keys, name)
-		}
-		sort.Strings(keys)
+		// // We go to the extra trouble to sort the keys here so that
+		// // the output is predictable, which aids in testing.
+		// keys := make([]string, 0, len(node.Children))
+		// for name, _ := range node.Children {
+		// 	keys = append(keys, name)
+		// }
+		// sort.Strings(keys)
+
+		// Instead of sorting (which we maybe want to make a flag) we will
+		// use the natural order that the keys were originally in
+		keys := node.OrderedChildNames
 
 		last := len(keys) - 1
 		for ix, name := range keys {

@@ -157,6 +157,7 @@ func (root *AclNode) ParseStringWithLogger(data string, location *ParseLocation,
                 // Oh hey, it's new (or a replacement in the reset case)
                 next = NewAclNode()
                 target.Children[name] = next
+                target.OrderedChildNames = append(target.OrderedChildNames, name)
             }
 
             target = next
