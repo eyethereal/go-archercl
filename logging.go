@@ -252,7 +252,7 @@ func configureLogger(name string, logger *logging.Logger) {
 	logging.SetLevel(moduleLevel, name)
 }
 
-// SetColoredConsole is a convenience method for simple test apps that would like a reasonable
+// ColoredLoggingToConsole is a convenience method for simple test apps that would like a reasonable
 // colored log output without the need to setup other configuration stuff. Note that loading a
 // configuration AFTER you have called this would cause this configuration to be overwritten by
 // whatever logging is setup in that config. Thus, call this last if you don't want to specify

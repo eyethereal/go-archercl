@@ -243,6 +243,19 @@ func (node *AclNode) ParseEnviron(env []string) {
 	}
 }
 
+func (node *AclNode) ForEachOrderedChild(fn func(string, *AclNode)) {
+	if node == nil || node.OrderedChildNames == nil {
+		return
+	}
+
+	for i := 0; i < len(node.OrderedChildNames); i++ {
+		name := node.OrderedChildNames[i]
+		child := node.Children[name]
+
+		fn(name, child)
+	}
+}
+
 func (node *AclNode) ChildAsInt(names ...string) int {
 	cNode := node.Child(names...)
 	return cNode.AsInt()
@@ -272,6 +285,18 @@ func (node *AclNode) ChildAsIntList(names ...string) []int {
 	out := make([]int, len(cNode.Values))
 	for ix, v := range cNode.Values {
 		out[ix] = valAsInt(v)
+	}
+	return out
+}
+
+func (node *AclNode) ChildAsByteList(names ...string) []byte {
+	cNode := node.Child(names...)
+	if cNode == nil {
+		return []byte{}
+	}
+	out := make([]byte, len(cNode.Values))
+	for ix, v := range cNode.Values {
+		out[ix] = byte(valAsInt(v))
 	}
 	return out
 }
@@ -476,12 +501,14 @@ func valAsFloat(v interface{}) float64 {
 	if !ok {
 		r, ok := v.(float32)
 		if !ok {
-			return 0.0
+			// BUT, it might be an int which we could cast as a float?
+			// So use the result from valAsInt to try to get a numerical
+			// value out of this thing
+			return float64(valAsInt(v))
 		}
 		return float64(r)
 	}
 	return r
-
 }
 
 func (node *AclNode) AsFloatN(ix int) float64 {
@@ -556,6 +583,66 @@ func (node *AclNode) AsBoolN(ix int) bool {
 	}
 
 	return valAsBool(node.Values[ix])
+}
+
+//////////////////////////////////////////////////////
+
+func (node *AclNode) createChild(names ...string) (*AclNode, error) {
+	if node == nil {
+		return nil, fmt.Errorf("Can not create a child AclNode on nil")
+	}
+
+	if node.Children == nil {
+		return nil, fmt.Errorf("AclNode Children map was nil")
+	}
+
+	cNode := node
+	var nextNode *AclNode
+	for ix, name := range names {
+		if len(cNode.Values) > 0 {
+			return nil, fmt.Errorf("AclNode %v had values", names[0:ix])
+		}
+
+		nextNode = cNode.Children[name]
+		if nextNode == nil {
+			nextNode = NewAclNode()
+			cNode.Children[name] = nextNode
+			cNode.OrderedChildNames = append(cNode.OrderedChildNames, name)
+		}
+
+		cNode = nextNode
+	}
+
+	return cNode, nil
+}
+
+func (node *AclNode) SetValAt(v interface{}, names ...string) error {
+	target, err := node.createChild(names...)
+	if err != nil {
+		return err
+	}
+
+	// Clear it first if necessary
+	if len(target.Values) > 0 {
+		target.Values = target.Values[:0]
+	}
+	target.Values = append(target.Values, v)
+	return nil
+}
+
+// TODO: This REALLY needs to be optimized, but for now if it will work...
+func (node *AclNode) Duplicate() *AclNode {
+	next := NewAclNode()
+
+	if node == nil {
+		// Always give you something....
+		return next
+	}
+
+	str := node.String()
+	next.ParseString(str, nil)
+	// ignoring all sorts of error conditions...
+	return next
 }
 
 //////////////////////////////////////////////////////
