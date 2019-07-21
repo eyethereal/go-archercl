@@ -60,7 +60,15 @@ func LoadACLConfig(name string, prefix string) *AclNode {
 	}
 
 	for _, fname := range filenames {
-		_ = cfg.ParseFile(fname)
+		e := cfg.ParseFile(fname)
+		if e != nil {
+			fmt.Fprintf(os.Stderr, "Unable to parse configuration file specified on the command line\n\n")
+			fmt.Fprintf(os.Stderr, "File : %v\n", fname)
+			cwd, _ := os.Getwd()
+			fmt.Fprintf(os.Stderr,"cwd  : %v\n", cwd)
+			fmt.Fprintf(os.Stderr, "Error: %v\n\n", e)
+			os.Exit(1)
+		}
 	}
 
 	// Environment variables
@@ -169,6 +177,8 @@ func ParseCmdLine() (ignore bool, filenames []string, toParse []string) {
 		}
 	}
 
+	// fmt.Printf("Command line parsing ignore=%v  files=%v   toParse=%v", ignore, filenames, toParse)
+	// panic("Stop")
 	return
 }
 
