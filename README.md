@@ -133,7 +133,7 @@ to simply redefine something that was previously defined in an earlier file.
 The third form of a value is an object which itself contains keys and values.
 As with JSON, objects are identified by wrapping a set of key/value definitions in 
 enclosing curly `{` and `}` brackets. There is an implicit object at the top
-level. Expressing a second object immediately inside a previous one is ignored,
+level. Expressing a second unnamed object immediately inside a previous one is ignored,
 thus the following three examples evaluate to the same thing:
 
 **Implicit Only**
@@ -168,8 +168,8 @@ including inside arrays.
 	}
 
 	endpoints = [
-		{ host: "foo.com", port: 800}
-		{ host: "bar.com", port: 800}
+		{ host: "foo.com", port: 80 }
+		{ host: "bar.com", port: 800 }
 	]
 
 Objects are used to namespace key names as with the examples above. 
@@ -238,7 +238,7 @@ strings into booleans. The ACL file format does not include an explicit boolean
 syntax, but the API does include `AsBool` methods that parse strings because this is
 such a common occurrence.
 
-While those are the most common methods for simple use of the API, `ApiNode` values
+While those are the most common methods for simple use of the API, `AclNode` values
 also have the following for more verbose usage. All methods operate safely on `nil` or
 uninitialized / zero value `AclNode` pointers.
 

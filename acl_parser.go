@@ -1,6 +1,6 @@
 
 //line acl_parser.rl:1
-package config
+package archercl
 
 import (
     "errors"

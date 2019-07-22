@@ -2,7 +2,7 @@
 //go:generate ragel -V -o acl_parser.dot acl_parser.rl
 //go:generate dot -oacl_parser.png -Tpng acl_parser.dot
 
-package config
+package archercl
 
 import (
 	"bufio"
@@ -14,114 +14,330 @@ import (
 	"io/ioutil"
 	"math/rand"
 	"os"
-	"os/user"
-	//"sort"
 	"strconv"
 	"strings"
 	"time"
 )
 
 const (
-	NODE_BUILDINFO = "buildInfo"
+	// This constant identifies the key under which any build information
+	// that has been written to the global variable BuildInfo is stored.
+	BUILDINFO_KEY = "buildInfo"
 
-	DEFAULT_BUILDINFOACL = NODE_BUILDINFO + ": \"Unspecified\""
+	// A constant that can be used to initialize random number generators
+	// for tests so that they produce predictable results. If this is not
+	// set during the configuration cascade it will be set by the Load()
+	// command at the end to the value of time.Now().UnixNano()
+	//
+	// Load will set this to the standard random number generator via a
+	// rand.seed(...) call, so all you need to do for your tests is put
+	// an int in the config file.
+	//
+	// While this is very useful for most situations, please don't rely on
+	// it for anything security related.
+	RANDOMSEED_KEY = "randomSeed"
+
+	// If this key is set at to true at the root level, when Load() is
+	// done it will log the result of the entire configuration cascade
+	// at debug level.
+	DUMPCONFIG_KEY = "dumpConfig"
+
+	// If this key is set the root level, whenever the configuration
+	// is dumped because DUMPCONFIG_KEY was also set it will be logged
+	// with ASCII color codes to make it a little more readable. You
+	// usually want this only for debugging and not for dumping into
+	// log files.
+	DUMPCOLOR_KEY = "dumpColor"
+
 )
 
 var alog = Logger("acl")
 
-// This variable will be set by the init() funciton in a build.go file that
-// is written into the config package during building on the CI server. It
-// is parsed at the end of configuration and is manually inserted into the
-// resulting structure so that it won't/can't be overwritten by accident.
+// This variable can be set from the init() function of an external module
+// to specify build time configuration information that will be added to
+// the config node obtained by calling Load(). This string should be a
+// valid ACL string or the Load() call will fail.
+//
+// The idea this is supporting is that on a CI server you can have an
+// external build script that has visibility into things like the build
+// identifier, git hash, or whatever you want and it can write this
+// data into a file like build.go which might look like the following:
+//
+//     package main
+//
+//     import "github.com/eyethereal/go-archercl"
+//
+//     func init() {
+//         archercl.BuildInfo = `
+//     build_num: 1234
+//     git_hash: 3d1004026a5f857551a474a92493c0330b68dd37
+//     build_server: coolci.org
+//     `
+//     }
+//
+// Such a file is relatively easy to generate from a shell script by
+// simply echoing the various parts to it using environment variables.
+// Assuming you have done this, your code can then access these variables
+// which are effectively baked into your binary by doing something like
+//
+//     cfg.ChildAsString(archercl.BUILDINFO_KEY, "git_hash")
+//
+// Any data added to BuildInfo is added after everything else has been
+// loaded and is rooted at BUILDINFO_KEY. The implication is that a
+// configuration file could specify default values, but anything baked
+// in to the executable by setting this value before calling Load() will
+// overwrite whatever has been specified in the cascade of configuration
+// sources.
 var BuildInfo string = ""
 
-// LoadACLConfig is the standard method of loading and parsing a
-// configuration.
-func LoadACLConfig(name string, prefix string) *AclNode {
+// The Opts type is used to
+type Opts struct {
+	// Name used to search for default config files with. If not specified
+	// it will default ot os.Args[0] which might be "go" if you aren't
+	// running an installed application. If you are using default config
+	// files you probably want to specify this.
+	Name string
 
-	cfg := NewAclNode()
+	// A prefix used when looking for environment variables to parse as
+	// value definitions. If not specified it will default to the name
+	// of the program.
+	EnvPrefix string
 
-	if name == "" {
-		name = "archer"
+	// A default configuration at the lowest level of precedence. It's
+	// more common to set these defaults using DefaultText, which is
+	// applied after this.
+	Defaults *AclNode
+
+	// If this flag is set a default logging configuration identical to what
+	// would be configured by a call to ColoredLoggingToConsole() will be
+	// added onto any provided Defaults. This makes it easy in simple programs
+	// that just need a couple configuraiton values and a reasonable console
+	// output to be setup by a single call to Load().
+	//
+	// This configuration fragment is added on top of anything provided by
+	// Defaults but before DefaultText is parsed so you can easily override
+	// it from there or anywhere else as you wish.
+	AddColorConsoleLogging bool
+
+	// A valid ACL string which defines a default configuration. This
+	// will be loaded on top of anything specified in Defaults. In general
+	// you probably want to use one or the other. This really exists
+	// as a shorthand to writing simple default configuration in a string
+	// literal when you have a fairly simple app that only has a few
+	// configuration values.
+	DefaultText string
+
+
+	// If set the default files based on the Name will not be loaded. This
+	// flag can be set via the command line parsing using -i, but if it
+	// is set in the Opts struct during load it can not be re-enabled via
+	// the command line.
+	IgnoreDefaultFiles bool
+
+	// If set the environment will not be scanned for values.
+	IgnoreEnvironment bool
+
+	// If set os.Args will not be parsed
+	IgnoreCommandLine bool
+
+	// Additional files to load. The ExtrasRequired flag determines if
+	// the files must exist.
+	ExtraFiles []string
+
+	// If this flag is set and one of the files specified by the ExtraFiles
+	// slice is not found an error will be thrown.
+	ExtrasRequired bool
+
+	// Extra logging backends to attach to the logging infrastructure in
+	// addition to ones that have been configured through the configuration
+	// file. Each backend has a name so that it's level and formatting
+	// can be configured via the same configuration files. Because backends
+	// can effectively only be created once this allows an application to create
+	// a unique local backed, such as a UI widget, that will receive all log
+	// messages and still preserve the ability to configure other backends
+	// via the configuration infrastructure.
+	ExtraBackends map[string]logging.Backend
+
+	// If set the config will be dumped to the log after parsing is done
+	// the same as if the DUMPCONFIG_KEY was set at the root level. Useful
+	// for when even basic parsing isn't working...
+	DumpConfig bool
+}
+
+// Loads ArcherCL data from pontentially multiple locations and returns the root node.
+// This is the main entry point of the package and it pulls together a standardized
+// method of loading from a bunch of different potential sources. The defaults are
+// reasonable so often you can just call this with a nil opts object.
+//
+// One of the most common options you will want to set is the Name of the
+// application which identifies which default files should be looked for.
+//
+// Generally file system errors such as non-loadable default files are silently ignored
+// because the most common cause is simple the files aren't being used. However, if a
+// file does exist and an error was encountered during parsing, you probably want to
+// know about that. Thus, any parsing errors will end the configuration process
+// and be returned to the caller.
+//
+// Parsing errors will have a type of ParseLocation which provides further information
+// about the exact error that was encountered.
+//
+// After everything else the last thing to be parsed into the config is a string
+// from BuildInfo if set. See that global variable for more information.
+//
+// Once the configuration is setup, Load() will set the random number generator seed
+// to a value from the key in the constant RANDOMSEED_KEY. See that constant for more.
+//
+// At the end of the configuration loading, the logging system from
+// "github.com/op/go-logging" will be configured.  See the documentation for logging.go
+// for example configuration values that can be used to setup all of the backends
+// supported by that fairly robust package. Any additional logging backends, such as
+// a native UI widget that wants to see all the log output, can be passed to the
+// logging configuratino by setting the ExtraBackends variable.
+//
+// Often, a reasonable set of default logging options can be configured using the
+// Default
+func Load(opts *Opts) (*AclNode, error) {
+
+	var err error
+
+	// Get us a default options object
+	if opts == nil {
+		opts = &Opts{}
 	}
+
+	//fmt.Printf("Opts = %v", opts)
+
+	programName := opts.Name
+	if len(programName) == 0 {
+		programName = os.Args[0]
+
+		logDelayed(logging.DEBUG, "Program name = " + programName)
+	}
+
+	// Start with a base configuration passed in from the user if any
+	cfg := opts.Defaults
+	if cfg == nil {
+		cfg = NewAclNode()
+	}
+
+	if opts.AddColorConsoleLogging {
+		cfg.ParseString(COLOR_LOGGING_ACL, nil)
+	}
+
+	if len(opts.DefaultText) > 0 {
+		location := &ParseLocation{
+			Filename: "DefaultText",
+		}
+		err = cfg.ParseString(opts.DefaultText, location)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	// Have to read the command line to see if we are going to ignore defaults or not
+	ignoreDefaults := opts.IgnoreDefaultFiles
+	filesToLoad := make([]string, 0)
+	stringsToParse := make([]string, 0)
 
 	// Parse the command line arguments
-	ignoreDefaults, filenames, toParse := ParseCmdLine()
+	if !opts.IgnoreCommandLine {
+		clIgnore, clFilenames, clStrings := ParseCmdLine()
 
-	if !ignoreDefaults {
-		// Start with the default files
-		_ = cfg.ParseFile("/etc/" + name + ".acl")
+		// If options say ignore, then ignore, otherwise go with the command line
+		if !ignoreDefaults {
+			ignoreDefaults = clIgnore
+		}
 
-		usr, _ := user.Current()
-		dir := usr.HomeDir
-		_ = cfg.ParseFile(dir + "/." + name + ".acl")
-
-		cfg.ParseFile("./" + name + ".acl")
+		filesToLoad = append(filesToLoad, clFilenames...)
+		stringsToParse = append(stringsToParse, clStrings...)
 	}
 
-	for _, fname := range filenames {
-		e := cfg.ParseFile(fname)
-		if e != nil {
-			fmt.Fprintf(os.Stderr, "Unable to parse configuration file specified on the command line\n\n")
-			fmt.Fprintf(os.Stderr, "File : %v\n", fname)
-			cwd, _ := os.Getwd()
-			fmt.Fprintf(os.Stderr,"cwd  : %v\n", cwd)
-			fmt.Fprintf(os.Stderr, "Error: %v\n\n", e)
-			os.Exit(1)
+
+	// Unless we are ignoring them, load from the default values. If we get a
+	// ParseLocation that means the file existed, and could be loaded, but was
+	// whacky town. We want to let the caller know about that rather tha swallowing
+	// these sorts of things.
+	if !ignoreDefaults {
+		// Start with the default files
+		err = cfg.ParseFile("/etc/" + programName + ".acl")
+		if pl, ok := err.(*ParseLocation); ok {
+			return nil, pl
+		}
+
+		dir,err := os.UserHomeDir()
+		err = cfg.ParseFile(dir + "/." + programName + ".acl")
+		if pl, ok := err.(*ParseLocation); ok {
+			return nil, pl
+		}
+
+		err = cfg.ParseFile("./" + programName + ".acl")
+		if pl, ok := err.(*ParseLocation); ok {
+			return nil, pl
+		}
+	}
+
+	// Load any files we found on the command like
+	for _, fname := range filesToLoad {
+		err = cfg.ParseFile(fname)
+		if pl, ok := err.(*ParseLocation); ok {
+			return nil, pl
 		}
 	}
 
 	// Environment variables
-	if prefix == "" {
-		prefix = name
-	}
-	prefix = strings.ToUpper(name)
-
-	env := make([]string, 0)
-	for _, v := range os.Environ() {
-		if strings.HasPrefix(v, prefix+"_") {
-			env = append(env, v[7:])
+	if !opts.IgnoreEnvironment {
+		prefix := opts.EnvPrefix
+		if prefix == "" {
+			prefix = programName
 		}
+
+		env := make([]string, 0)
+		for _, v := range os.Environ() {
+			if strings.HasPrefix(v, prefix+"_") {
+				env = append(env, v[7:])
+			}
+		}
+		cfg.ParseEnviron(env)
 	}
-	cfg.ParseEnviron(env)
 
 	// Command line strings
-	for ix, str := range toParse {
+	for ix, str := range stringsToParse {
 		location := &ParseLocation{
 			Filename: fmt.Sprintf("CMDLINE(%d)", ix),
 		}
 		cfg.ParseString(str, location)
 	}
 
-	{
-		// Manually add the build info node
+	// Possibly add some build info
+	if len(BuildInfo) > 0 {
 		bi := NewAclNode()
 		_ = bi.ParseString(BuildInfo, nil) // TODO - handle the error
-		cfg.Children[NODE_BUILDINFO] = bi
+		cfg.Children[BUILDINFO_KEY] = bi
 	}
 
 	// Setup random either using a seed from the config or the time. This ensure
 	// that we can both be testable or can have reasonale pseudo-randomness
-	seed := int64(cfg.ChildAsInt("randomSeed"))
+	seed := int64(cfg.ChildAsInt(RANDOMSEED_KEY))
 	if seed == 0 {
 		seed = time.Now().UnixNano()
+		cfg.SetValAt(seed, RANDOMSEED_KEY)
 	}
 	logDelayed(logging.DEBUG, fmt.Sprintf("Random seed is %d", seed))
 	rand.Seed(seed)
 
 	SetLoggingConfig(cfg)
 
-	if cfg.ChildAsBool("dumpConfig") {
+	if cfg.ChildAsBool(DUMPCONFIG_KEY) || opts.DumpConfig {
 		outputDelayedLog(alog)
 		alog.Debug("Canonical config after all parsing:")
-		if cfg.ChildAsBool("dumpColor") {
+		if cfg.ChildAsBool(DUMPCOLOR_KEY) {
 			alog.Debug(cfg.ColoredString())
 		} else {
 			alog.Debug(cfg.String())
 		}
 	}
 
-	return cfg
+	return cfg, nil
 }
 
 const (
@@ -211,6 +427,9 @@ func NewAclNode() (node *AclNode) {
 	}
 }
 
+// Attempts to load and parse the named file. If syntax errors occuring during
+// the parsing, the error will be of type ParseLocation. Any other type is
+// indicative of a issue loading the file.
 func (node *AclNode) ParseFile(filename string) error {
 	// fmt.Printf("ParseFile(%v)\n", filename)
 	data, err := ioutil.ReadFile(filename)
@@ -858,7 +1077,7 @@ func (node *AclNode) ColoredString() string {
 }
 
 func (node *AclNode) PrettyVersion() string {
-	bi := node.Child(NODE_BUILDINFO)
+	bi := node.Child(BUILDINFO_KEY)
 
 	if bi.ChildAsBool("travis", "server") {
 		return fmt.Sprintf("T#%s (%d)%s %s",

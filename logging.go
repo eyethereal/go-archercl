@@ -1,9 +1,12 @@
 /*
-	Logging
+	Logging integrated with application configuration.
 
-	For logging we are using the "github.com/op/go-logging" logging library which provides
+	This code integrates the "github.com/op/go-logging" logging library which provides
 	some modularity around the built-in framework and adds more flexibility including
-	multi-destination and colored outputs.
+	multi-destination and colored outputs with the archer configuration language. The
+	motivation is that logging is such a common feature that having an easy and standard
+	way to set it up along with a configuration language is a huge step forward for most
+	projects.
 
 	To set it up in your package, do something like the following at a single place inside
 	your package:
@@ -12,7 +15,7 @@
 		// Package level logging
 		// This only needs to be in one file per-package
 
-		var log = config.Logger("mymodule")
+		var log = archercl.Logger("mymodule")
 
 		//////////////////////////////////////////////////////////////////////
 
@@ -20,11 +23,23 @@
 	method that can be called from init() if you wish. This should only be one in
 	test code though because this should generally be controlled via the config file.
 
-
 		func init() {
 			config.ColoredLoggingToConsole()
 		}
 
+	This is really only useful for simple situations. where you don't want to do
+	any sort of configuration. Normally, even for mostly simple programs, you're likely
+	to want something more along the lines of this in your main(). It will get you the
+	same result PLUS you'll have a configuration object parsed from files, the environment,
+	and the command line all in one line of code!
+
+		var log = archercl.Logger("myapp")
+
+		func main() {
+			cfg := archercl.Load(&archercl.Opts{
+					AddColorConsoleLogging: true,
+				})
+		}
 
 	Using the setup above, you will have a log variable available that has Printf style methods on
 	it as per:
@@ -38,19 +53,21 @@
 
 	NOTE: There was a breaking change in early 2016 which requires the trailing f on the level names
 	if you want to use formatting strings. This matches the fmt.Printf(...) syntax. There are also
-	non-f versions of the level methods which will immediately log the first value as a message. This
-	requires going through our whole codebase and some things might have gotten missed. Yay for progress.
+	non-f versions of the level methods which will immediately log the first value as a message.
+
 
 	Logging Configuration
 
 
-	From the archer.acl file you can configure some global logging defaults, a list of
+	From an acl file you can configure some global logging defaults, a list of
 	backends, and individual logging level on a per module basis. Automatically at the
-	end of config.LoadACLConfig the logging configuration for the whole app will be set. It
+	end of archercl.Load the logging configuration for the whole app will be set. It
 	can also be set later, but it isn't necessary.
 
 	Here is an example configuration which logs to two destinations, both a file and stdout,
-	using a different log format for stdout which includes color
+	using a different log format for stdout which includes color. Note that the
+	syntax is kind of intentionally using multiple features of ACL like : and =
+	to separate keys and values.
 
 		logging {
 			backends {
@@ -121,7 +138,13 @@
 				}
 
 				// Write to a file, optionally adding color in addition to
-				// whatever is specified in log format
+				// whatever is specified in log format. There's nothing fancy
+				// with the file going on here so you may need to create your own
+				// custom backend if you don't want to use a different thing like
+				// syslog to manage the file for you.
+				//
+				// The file is opened with
+				// 		os.OpenFile(fName, os.O_WRONLY|os.O_APPEND|os.O_CREATE, os.FileMode(0666))
 				log_file {
 					type: file
 					filename: "out.log"
@@ -146,16 +169,40 @@
 				// Logs to syslog
 				standard_err {
 					type: syslog
-					prefix: "archer" // A prefix for all message. See builtin log package
+					prefix: "myapp"  // A prefix for all message. See builtin log package
 					facility: user	 // Syslog facility.
-									 // See the SyslogFacilities map in this file
+									 // See the SyslogFacilities map in this file for all the valid strings,
+								     // but they're all the common ones.
 					format: "%{time:15:04:05} %{message}"
 				}
+
+				loggly {
+					type: loggly
+					// TODO: Finish documenting this
+				}
+
+				// A delayed backend establishes a placeholder in the hierarchy that can
+				// can be configured with a format etc. but which doesn't actually output
+				// the messages anywhere directly. This is used for UI or other elements
+				// which want to take advantage of all the logging setup infrastructure
+				// but which aren't available until sometime potentially well after the
+				// the configuration parsing is all fully done.
+				//
+				// This backend can optionall hold on to early log messages to make sure they are
+				// included in the output of such a delayed logger.
+				delayed {
+					type: delayed
+					maxCache: 0  // max messages to hold until the real backend comes along.
+ 							     // 0 = don't cache anything, just drop them if there is no real backend
+                                 // <0 = no limit, hold onto all messages. This is the default.
+					format: "%{time:15:04:05} %{message}"
+				}
+
 			}
 		}
 
 */
-package config
+package archercl
 
 import (
 	"fmt"
@@ -170,6 +217,17 @@ const DEFAULT_FORMAT_STRING = "%{time:15:04:05.000} %{shortfunc:10.10s} %{level:
 //const DEFAULT_FORMAT_STRING = "%{color}%{time:15:04:05.000} %{shortfunc:10.10s} %{level:4.4s}%{color:reset} %{module:8.8s} ▶ %{message}"
 
 //const DEFAULT_FORMAT_STRING = "%{time:15:04:05.000} %{shortfunc:.10s} %{level:.4s}%{color:reset} %{module:.8s} ▶ %{message}"
+
+// A string which holds a simple configuration fragment that sets up pretty
+// reasonable defaults for most applications.
+const COLOR_LOGGING_ACL = `
+		logging backends color_console {
+			type: stdout
+			color: true			
+		}
+
+		logging level: "debug"
+	`
 
 var loggers = make(map[string]*logging.Logger)
 
@@ -200,6 +258,14 @@ func Logger(name string) (logger *logging.Logger) {
 // always return the basic type which can then be coercised into whatever you
 // need if you want to further configure this. One use here is to retrieve the
 // memory backend instance so you can get at the messages it contains.
+//
+// The other common use is to get a delayed backed end so you can set the
+// real backend which it should forward messages on to like so
+//
+//		if be, ok := archercl.GetBackend("ui").(archercl.DelayedBacked); ok {
+//			be.SetRealBackend(myUiLogger)
+//		}
+//
 func GetBackend(name string) logging.Backend {
 	holder := backends[name]
 
@@ -231,10 +297,10 @@ var backends = make(map[string]*BackendHolder)
 
 var globalLevel logging.Level
 
-func configureLogger(name string, logger *logging.Logger) {
+func configureLogger(modName string, logger *logging.Logger) {
 
-	// fmt.Printf("Configuring logger '%s'\n", name)
-	moduleCfg := loggingACL.Child("modules", name)
+	// fmt.Printf("Configuring logger '%s'\n", modName)
+	moduleCfg := loggingACL.Child("modules", modName)
 
 	// The level is set on a per-logger basis
 	moduleLevel := globalLevel
@@ -245,11 +311,11 @@ func configureLogger(name string, logger *logging.Logger) {
 		if err == nil {
 			moduleLevel = ml
 		} else {
-			logDelayed(logging.ERROR, "Did not understand log level for module "+name)
+			logDelayed(logging.ERROR, "Did not understand log level for module "+modName)
 		}
 	}
 
-	logging.SetLevel(moduleLevel, name)
+	logging.SetLevel(moduleLevel, modName)
 }
 
 // ColoredLoggingToConsole is a convenience method for simple test apps that would like a reasonable
@@ -266,14 +332,7 @@ func ColoredLoggingToConsole() {
 		return
 	}
 
-	cfg := StringToACL(`
-		logging backends color_console {
-			type: stdout
-			color: true			
-		}
-
-		logging level: "debug"
-	`)
+	cfg := StringToACL(COLOR_LOGGING_ACL)
 
 	SetLoggingConfig(cfg)
 
@@ -341,6 +400,8 @@ func SetLoggingConfig(acl *AclNode) {
 			case "loggly":
 				makeLogglyBackend(holder)
 
+			case "delayed":
+				makeDelayedBackend(holder)
 			}
 
 			if holder.Backend == nil {
@@ -516,3 +577,56 @@ func makeLogglyBackend(holder *BackendHolder) {
 	client := NewLogglyClient(token, tags...)
 	holder.Backend = client
 }
+
+func makeDelayedBackend(holder *BackendHolder) {
+	maxCache := holder.Node.DefChildAsInt(-1,"maxCache")
+
+	holder.Backend = NewDelayedBacked(maxCache)
+}
+
+
+type DelayedBackend struct {
+	realBackend logging.Backend
+	MaxCache    int
+	cache       []*logging.Record
+}
+
+func NewDelayedBacked(maxCache int) *DelayedBackend {
+	d := &DelayedBackend{
+		MaxCache: maxCache,
+	}
+
+	return d
+}
+
+func (d *DelayedBackend) SetRealBackend(be logging.Backend) {
+	if be == nil {
+		d.realBackend = nil
+		return
+	}
+
+	d.realBackend = be
+	for _, r := range(d.cache) {
+		_ = d.realBackend.Log(r.Level, 0, r)
+	}
+	d.cache = d.cache[:0]
+}
+
+func (d DelayedBackend) Log(level logging.Level, depth int, r *logging.Record) error {
+	if d.realBackend != nil {
+		return d.realBackend.Log(level, depth, r)
+	}
+
+	if d.MaxCache == 0 {
+		return nil
+	}
+
+	if d.MaxCache > 0 && len(d.cache) == d.MaxCache {
+		d.cache = d.cache[len(d.cache) - 1 - d.MaxCache:]
+	}
+
+	d.cache = append(d.cache, r)
+
+	return nil
+}
+

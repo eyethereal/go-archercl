@@ -1,6 +1,6 @@
 // Original code from https://github.com/segmentio/go-loggly
 
-package config
+package archercl
 
 // import
 import (
