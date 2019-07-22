@@ -14,6 +14,7 @@ import (
 	"io/ioutil"
 	"math/rand"
 	"os"
+	"os/user"
 	"strconv"
 	"strings"
 	"time"
@@ -264,7 +265,16 @@ func Load(opts *Opts) (*AclNode, error) {
 			return nil, pl
 		}
 
-		dir,err := os.UserHomeDir()
+		// In 1.12 this works, but not in 1.10
+		// dir,err := os.UserHomeDir()
+
+		// 1.10 style of getting the user's home dir
+		current, err := user.Current()
+		if err != nil {
+			return nil, err
+		}
+		dir := current.HomeDir
+		
 		err = cfg.ParseFile(dir + "/." + programName + ".acl")
 		if pl, ok := err.(*ParseLocation); ok {
 			return nil, pl
