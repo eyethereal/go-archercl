@@ -764,7 +764,9 @@ func valAsString(v interface{}) string {
 	if !ok {
 		r, ok := v.(fmt.Stringer)
 		if !ok {
-			return ""
+			// If we are here then it's almost certainly a literal so
+			// let's just defer to how fmt.Sprintf thinks it should go
+			return fmt.Sprintf("%v", v)
 		}
 		return r.String()
 	}
