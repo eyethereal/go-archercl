@@ -304,7 +304,7 @@ func Load(opts *Opts) (*AclNode, error) {
 		env := make([]string, 0)
 		for _, v := range os.Environ() {
 			if strings.HasPrefix(v, prefix+"_") {
-				env = append(env, v[7:])
+				env = append(env, v[len(prefix)+1:])
 			}
 		}
 		cfg.ParseEnviron(env)
@@ -322,7 +322,8 @@ func Load(opts *Opts) (*AclNode, error) {
 	if len(BuildInfo) > 0 {
 		bi := NewAclNode()
 		_ = bi.ParseString(BuildInfo, nil) // TODO - handle the error
-		cfg.Children[BUILDINFO_KEY] = bi
+		//cfg.Children[BUILDINFO_KEY] = bi
+		cfg.SetValAt(bi, BUILDINFO_KEY)
 	}
 
 	// Setup random either using a seed from the config or the time. This ensure
@@ -466,19 +467,10 @@ func (node *AclNode) ParseEnviron(env []string) {
 	for _, e := range env {
 		v := strings.SplitN(e, "=", 2)
 
-		key := strings.ToLower(v[0])
+		key := v[0]
 		keys := strings.Split(key, "_")
 
-		cNode := node
-		for _, k := range keys {
-			cNode := node.Children[k]
-			if cNode == nil {
-				cNode = NewAclNode()
-				node.Children[k] = cNode
-			}
-		}
-
-		cNode.Values = append(cNode.Values, v[1])
+		node.SetValAt(v[1], keys...)
 	}
 }
 
