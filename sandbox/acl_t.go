@@ -3,7 +3,7 @@ package main
 import (
 	"bytes"
 	"fmt"
-	"github.com/eyethereal/go-config"
+	"github.com/eyethereal/go-archercl"
 	"github.com/mgutz/ansi"
 	"log"
 	// "strconv"
@@ -199,7 +199,7 @@ func main() {
 		fmt.Printf(ansi.Color("\n==========================================\n", "black+b"))
 		fmt.Printf(ansi.Color("Test #%d:\n", "black+b"), n)
 		fmt.Printf(ansi.Color("%s\n", "blue"), sample)
-		node := config.NewAclNode()
+		node := archercl.NewAclNode()
 
 		buffer := &bytes.Buffer{}
 		logger := log.New(buffer, "", 0)
@@ -222,7 +222,7 @@ func main() {
 		// fmt.Printf(ansi.Color("%s\n", "magenta"), strconv.Quote(firstString))
 
 		// Now re-parse the result to make sure our canonical representation is re-parsable
-		node2 := config.NewAclNode()
+		node2 := archercl.NewAclNode()
 		err = node2.ParseString(firstString, nil)
 		if err != nil {
 			fmt.Printf("%s: %s\n", ansi.Color("ERROR:", "red+b"), ansi.Color(err.Error(), "red"))

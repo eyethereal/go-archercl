@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/eyethereal/go-config"
+	"github.com/eyethereal/go-archercl"
 )
 
 func main() {
